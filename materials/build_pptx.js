@@ -245,6 +245,18 @@ T(s, [
 ], { x: 5.95, y: 1.8, w: 3.4, h: 3.0, fontSize: 13, paraSpaceAfter: 6, valign: 'top' })
 s.addNotes(NOTE(10))
 
+// 12. Дрон модулі
+s = content('Келешек')
+title(s, '2-кезең: дрон ірі алқапты тексереді')
+s.addImage({ path: FIG('drone_flight.gif'), x: 0.5, y: 1.1, w: 5.6, h: 3.15, objectName: 'drone-gif', altText: 'Дрон алқапты ары-бері шолып, ошақтарды табады' })
+T(s, 'Дрон алқапты 100 м биіктіктен ары-бері шолады → ошақтарды 25 м-ден нақтылайды → тәуекел картасы мен есеп.', { x: 0.5, y: 4.35, w: 5.6, h: 0.5, fontSize: 12, color: MUTED })
+;[['21,1 ц/га', 'өнімділік болжамы (масақ санау)', LEAF], ['30 га', 'ауру ошағы табылды (6%)', RUST], ['9,5 т', 'өңделмесе шығын ≈ 855 мың ₸', RUST], ['−91%', 'фунгицид: тек 45 га шашыратылады, үнем 4,55 млн ₸', LEAF]].forEach(([n, l, c], i) => {
+  T(s, n, { x: 6.4, y: 1.1 + i * 0.95, w: 3.1, h: 0.5, fontSize: 28, bold: true, color: c })
+  T(s, l, { x: 6.4, y: 1.58 + i * 0.95, w: 3.1, h: 0.4, fontSize: 11, color: MUTED })
+})
+T(s, 'Мысал: 500 га. Болжам: бидай 90 000 ₸/т, өңдеу 10 000 ₸/га. Есеп: drone/calc.py', { x: 6.4, y: 4.85, w: 3.1, h: 0.3, fontSize: 9, color: MUTED })
+s.addNotes(NOTE(12))
+
 // 11. Команда
 s = pres.addSlide({ masterName: 'EG_TITLE', sectionTitle: 'Келешек' })
 s.addText('Команда', { placeholder: 'title' })
