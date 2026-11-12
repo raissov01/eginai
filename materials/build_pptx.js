@@ -7,6 +7,8 @@ const { applyTheme } = require(process.env.PPTX_SKILL + '/scripts/apply_theme.js
 
 const ROOT = path.resolve(__dirname, '..')
 const FIG = (f) => path.join(ROOT, 'materials/figures', f)
+const PITCH = require('./pitch.js')
+const NOTE = (n) => PITCH.slides.filter((x) => x.n === n || (n === 3 && x.demo)).map((x) => `${PITCH.speakers[x.who]} (~${x.sec} с${x.demo ? ', тірі демо' : ''}): ${x.text}`).join('\n\n')
 const M = JSON.parse(fs.readFileSync(path.join(ROOT, 'ml/metrics.json'), 'utf8'))
 const p1 = (x) => (x * 100).toFixed(1).replace('.', ',') + '%'
 
@@ -69,7 +71,7 @@ T(s, [
   { text: 'Конкурс «AI autumn» 2026  |  Бағыт: Агротех, экология және ақылды қала', options: { breakLine: true } },
   { text: 'С. Сейфуллин атындағы ҚАТЗУ  |  Ғылыми жетекші: Таберхан Роман' },
 ], { x: 0.6, y: 4.5, w: 8.6, h: 0.6, fontSize: 12, color: 'C9D3CC', paraSpaceAfter: 4 })
-s.addNotes('Бекназар: Сәлеметсіздер ме! Біз — EginAI командасы. Біздің жоба фермерге бидай ауруын телефонның бір фотосы бойынша бірнеше секундта анықтап, не істеу керегін ана тілінде айтады.')
+s.addNotes(NOTE(1))
 
 // 2. Мәселе
 pres.addSection({ title: 'Мәселе және шешім' })
@@ -92,7 +94,7 @@ pains.forEach(([h, t], i) => {
   T(s, h, { x: 4.9, y, w: 4.6, h: 0.35, fontSize: 16, bold: true })
   T(s, t, { x: 4.9, y: y + 0.36, w: 4.6, h: 0.45, fontSize: 13, color: MUTED })
 })
-s.addNotes('Бекназар: Мәселе — ауру тым кеш байқалады. ФАО бағасы бойынша әлемдік егіннің 40 пайызына дейін зиянкестер мен аурулардан жоғалады. Шалғай ауылдарда агроном жетпейді, ал бар қолданбаларда қазақ тілі жоқ, олар жарнамаға толы және жиі «білмеймін» деп жауап береді — біз 77 пайдаланушы пікірін оқыдық.')
+s.addNotes(NOTE(2))
 
 // 3. Шешім + экрандар
 s = content('Мәселе және шешім')
@@ -104,7 +106,7 @@ shots.forEach(([f, cap], i) => {
   s.addShape(pres.shapes.RECTANGLE, { x: x + 0.1, y: 1.15, w: 1.85, h: 3.86, fill: { type: 'none' }, line: { color: LINE, width: 1 } })
   T(s, cap, { x, y: 5.03, w: 2.05, h: 0.2, fontSize: 10, color: MUTED, align: 'center' })
 })
-s.addNotes('Рамазан: Шешім — төрт қадам. Фермер жапырақты немесе масақты суретке түсіреді. Бірнеше секундта ауру атауы, сенімділік және модель қай жерге қарағаны көрсетіледі. Төменде — белгілері, өңдеу шегі, агро- және химиялық шаралар, мерзімі. Келісім берсе, жағдай картаға түседі. Тіркелу жоқ, жарнама жоқ, Telegram-бот та бар.')
+s.addNotes(NOTE(3))
 
 // 4. Архитектура
 pres.addSection({ title: 'Технология' })
@@ -117,7 +119,7 @@ tech.forEach(([h, t], i) => {
   T(s, t, { x: 7.0, y: 1.43 + i * 0.78, w: 2.5, h: 0.45, fontSize: 11, color: INK })
 })
 T(s, 'Фото серверде сақталмайды. Модель 16 МБ, кәдімгі процессорда жұмыс істейді.', { x: 0.5, y: 4.5, w: 6.2, h: 0.4, fontSize: 13, color: MUTED })
-s.addNotes('Арман: Сервер FastAPI-да жазылған. Фото келгенде ONNX форматындағы нейрожелі екі нәрсе береді: класс ықтималдығын және белгілер картасын. Кеңес екі тілдегі білім базасынан алынады, сұраққа жауап беру үшін BM25 іздеуі қолданылады. Картаға тек келісілген жағдайлар PostgreSQL-ге жазылады. Барлығы бір docker compose up командасымен көтеріледі, ешқандай кілт қажет емес.')
+s.addNotes(NOTE(4))
 
 // 5. Деректер мен модель
 s = content('Технология')
@@ -141,7 +143,7 @@ cls.forEach(([n, c], i) => {
   s.addShape(pres.shapes.OVAL, { x: 5.9, y: 1.9 + i * 0.42, w: 0.2, h: 0.2, fill: { color: c }, line: { color: INK, width: 0.75 } })
   T(s, n, { x: 6.25, y: 1.84 + i * 0.42, w: 3.1, h: 0.32, fontSize: 13 })
 })
-s.addNotes('Ернұр: Біз Хэнань аграрлық университетінің 4156 далалық фотосынан тұратын ашық датасетін қолдандық, лицензиясы CC-BY. Ол детекцияға арналған, сондықтан әр зақымдану аймағын қиып, жеті класты классификация датасетін жасадық. Маңызды жайт: бөлу сурет бойынша жасалған, сондықтан тест нәтижесі адал. EfficientNet-B0 моделін transfer learning әдісімен 15 эпоха үйреттік.')
+s.addNotes(NOTE(5))
 
 // 6. Нәтижелер
 pres.addSection({ title: 'Нәтижелер' })
@@ -162,7 +164,7 @@ s.addChart(pres.charts.BAR, [{ name: 'F1', labels: order.map((k) => kk[k]), valu
   valAxisHidden: true, valAxisMinVal: 0, valAxisMaxVal: 100, valGridLine: { style: 'none' }, catGridLine: { style: 'none' }, showLegend: false,
 })
 T(s, 'Мақсат (өтінімде): ≥ 90%. Жетті.', { x: 0.5, y: 4.85, w: 3.3, h: 0.3, fontSize: 12, bold: true, color: RUST })
-s.addNotes(`Ернұр: Модель оқу кезінде көрмеген ${M.n_test} суретте дәлдік ${p1(M.accuracy)}, macro-F1 ${p1(M.macro_f1)}. Өтінімде 90 пайыз деп уәде бергенбіз — асырып орындадық. Бір суретті кәдімгі процессорда шамамен ${Math.round(M.cpu_ms_per_image_median)} миллисекундта өңдейді. Ең қиын класс — масақ септориозы, оның тест суреттері аз.`)
+s.addNotes(NOTE(6))
 
 // 7. Түсіндірілетін және адал
 s = content('Нәтижелер')
@@ -176,7 +178,7 @@ T(s, [
   { text: 'Сенім < 50% → «қайта түсіріңіз» + 3 ықтимал нұсқа.', options: { bullet: true, breakLine: true } },
   { text: 'Қабырға, қағаз, аспан → «суретте өсімдік жоқ».', options: { bullet: true } },
 ], { x: 6.0, y: 2.95, w: 3.5, h: 1.95, fontSize: 13, paraSpaceAfter: 6, valign: 'top' })
-s.addNotes('Бекназар: Біз үшін маңыздысы — адалдық. Жылу картасы модельдің дәл тат пустулаларына қарағанын көрсетеді. Модель күмәнданса, «қайта түсіріңіз» дейді: тест суреттерінің екі пайызы осылай белгіленді, ал сенімді жауаптардағы дәлдік 98,4 пайыз. Өсімдік емес фотоға ойдан диагноз қоймайды.')
+s.addNotes(NOTE(7))
 
 // 8. Аналогтар
 pres.addSection({ title: 'Нарық' })
@@ -198,7 +200,7 @@ s.addTable(rows.map((r, ri) => r.map((c, ci) => ({
   },
 }))), { x: 0.5, y: 1.15, w: 9.0, colW: [1.9, 1.3, 1.65, 1.45, 1.5, 1.2], rowH: 0.45, border: { type: 'solid', pt: 1, color: LINE }, fontFace: 'Arial' })
 T(s, '77 нақты пікір бойынша басты шағымдар: «ИИ білмейді / қате айтады» (16), жарнама мен жазылым (11), қажет дақыл жоқ (8), «эксперт жауап бермейді» (5).', { x: 0.5, y: 4.2, w: 9.0, h: 0.6, fontSize: 13, color: MUTED })
-s.addNotes('Рамазан: Біз Plantix, Agrio, PlantVillage, DoctorP және қазақстандық жобаларды талдадық, 77 нақты пікірді оқыдық. Ешқайсысында қазақ тілі мен ашық аурулар картасы жоқ. EginAI — тегін, жарнамасыз, тіркеусіз және Telegram арқылы да жұмыс істейді.')
+s.addNotes(NOTE(8))
 
 // 9. Қауіпсіздік және іске қосу
 s = content('Нарық')
@@ -217,7 +219,7 @@ sec.forEach(([h, t], i) => {
 })
 box(s, 0.5, 4.15, 9.0, 0.75, INK, 'run')
 T(s, [{ text: 'git clone …  &&  docker compose up', options: { fontFace: 'Courier New', color: WHEAT, bold: true } }, { text: '   →   http://localhost:8000', options: { color: 'FFFFFF' } }], { x: 0.75, y: 4.15, w: 8.5, h: 0.75, fontSize: 16, valign: 'middle' })
-s.addNotes('Арман: Жеке деректер заңына сай фото сақталмайды, картаға тек келісіммен шамамен орын жазылады. Кодта кілт жоқ, қате енгізуге түсінікті жауап беріледі. Жоба жюри компьютерінде бір командамен іске қосылады, қосымша баптау қажет емес.')
+s.addNotes(NOTE(9))
 
 // 10. Келешек
 pres.addSection({ title: 'Келешек' })
@@ -243,7 +245,7 @@ T(s, [
   { text: 'Әкімдіктер мен фитосанитарлық қызметтерге аналитика лицензиясы', options: { bullet: true, breakLine: true } },
   { text: 'АӨК-ті цифрландыру гранттары', options: { bullet: true } },
 ], { x: 5.95, y: 1.8, w: 3.4, h: 3.0, fontSize: 13, paraSpaceAfter: 6, valign: 'top' })
-s.addNotes('Бекназар: Келесі көктемде университеттің тәжірибелік алқаптарынан өз фотоларымызды жинап, модельді Ақмола жағдайына бейімдейміз. Кейін арпа мен интернетсіз режим қосылады. Фермерлер үшін сервис тегін қалады; табыс — агрохолдингтер мен әкімдіктерге арналған аналитикадан және гранттардан.')
+s.addNotes(NOTE(10))
 
 // 11. Команда
 s = pres.addSlide({ masterName: 'EG_TITLE', sectionTitle: 'Келешек' })
@@ -255,7 +257,7 @@ team.forEach(([n, r], i) => {
   T(s, r, { x, y: y + 0.4, w: 4.2, h: 0.4, fontSize: 13, color: 'FFFFFF' })
 })
 T(s, 'Ғылыми жетекші: Таберхан Роман      Рақмет! Сұрақтарыңызды күтеміз.', { x: 0.6, y: 4.75, w: 8.8, h: 0.4, fontSize: 14, color: 'C9D3CC' })
-s.addNotes('Бекназар: Әр қатысушы өз бөлігін түсіндіре алады: Ернұр — модель, Арман — сервер мен бот, Рамазан — интерфейс пен карта. Назарларыңызға рақмет! Енді тірі демонстрацияны көрсетеміз және сұрақтарға жауап береміз.')
+s.addNotes(NOTE(11))
 
 const out = path.join(ROOT, 'materials', 'EginAI_Prezentatsia.pptx')
 pres.writeFile({ fileName: out }).then(async () => { await applyTheme(out, THEME); console.log('→', out) })
