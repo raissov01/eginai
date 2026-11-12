@@ -1,0 +1,18 @@
+{
+  "name": "eginai-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio --browser-executable=/usr/bin/google-chrome",
+    "render": "remotion render EginAI out/EginAI_Demo.mp4 --browser-executable=/usr/bin/google-chrome --concurrency=4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/fonts": "4.0.539",
+    "@remotion/media": "4.0.539",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.539"
+  }
+}

@@ -1,0 +1,57 @@
+{
+ "video": "/home/midoriya/eginai/materials/video/raw/page@dd01a57f42457c4aae44898071b7a509.webm",
+ "marks": [
+  [
+   4.35,
+   "home"
+  ],
+  [
+   6.75,
+   "upload_rust"
+  ],
+  [
+   11.17,
+   "result_rust"
+  ],
+  [
+   13.58,
+   "cam_toggle"
+  ],
+  [
+   18.47,
+   "advice"
+  ],
+  [
+   25.38,
+   "ask"
+  ],
+  [
+   31.7,
+   "consent"
+  ],
+  [
+   36.31,
+   "lang_ru"
+  ],
+  [
+   45.98,
+   "result_stripe"
+  ],
+  [
+   47.33,
+   "not_plant"
+  ],
+  [
+   53.52,
+   "map"
+  ],
+  [
+   65.84,
+   "about"
+  ],
+  [
+   75.23,
+   "end"
+  ]
+ ]
+}

@@ -57,9 +57,11 @@ def main():
     seed_demo_points()
     with sync_playwright() as p:
         b = p.chromium.launch()
-        ctx = b.new_context(viewport={"width": 412, "height": 860}, device_scale_factor=2, locale="kk-KZ",
-                            record_video_dir=str(VID), record_video_size={"width": 412, "height": 860},
+        ctx = b.new_context(viewport={"width": 824, "height": 1720}, device_scale_factor=1, locale="kk-KZ",
+                            record_video_dir=str(VID), record_video_size={"width": 824, "height": 1720},
                             geolocation={"latitude": 51.62, "longitude": 69.95}, permissions=["geolocation"])
+        # 412 px телефон макеті 2× анықтықпен: CSS zoom (видео жазбасы DPR-ді ескермейді)
+        ctx.add_init_script("document.addEventListener('DOMContentLoaded',()=>{const s=document.createElement('style');s.textContent='html{zoom:2}';document.head.appendChild(s)})")
         page = ctx.new_page()
         T0[0] = time.monotonic()
         page.goto(BASE + "/#diagnose")
@@ -85,7 +87,7 @@ def main():
         pause(page, 1.5)
         mark("advice")
         for _ in range(6):
-            page.mouse.wheel(0, 260)
+            page.mouse.wheel(0, 520)
             pause(page, .7)
         page.screenshot(path=FIG / "ui-3-advice-kk.png")
         # Сұрақ қою
@@ -145,7 +147,7 @@ def main():
         pause(page, 2.5)
         page.screenshot(path=FIG / "ui-8-about-ru.png", full_page=True)
         for _ in range(4):
-            page.mouse.wheel(0, 300)
+            page.mouse.wheel(0, 600)
             pause(page, .8)
         mark("end")
         ctx.close()
