@@ -1,0 +1,17 @@
+  sched.step()
+{"epoch": 1, "loss": 2.5727, "val_acc": 0.7309, "val_macro_f1": 0.7173, "sec": 66}
+{"epoch": 2, "loss": 1.0668, "val_acc": 0.8455, "val_macro_f1": 0.8297, "sec": 54}
+{"epoch": 3, "loss": 0.7756, "val_acc": 0.934, "val_macro_f1": 0.9253, "sec": 54}
+{"epoch": 4, "loss": 0.6946, "val_acc": 0.934, "val_macro_f1": 0.9235, "sec": 56}
+{"epoch": 5, "loss": 0.6335, "val_acc": 0.9375, "val_macro_f1": 0.9255, "sec": 58}
+{"epoch": 6, "loss": 0.6036, "val_acc": 0.9566, "val_macro_f1": 0.9497, "sec": 58}
+{"epoch": 7, "loss": 0.5857, "val_acc": 0.9497, "val_macro_f1": 0.9385, "sec": 59}
+{"epoch": 8, "loss": 0.5726, "val_acc": 0.9497, "val_macro_f1": 0.9421, "sec": 59}
+{"epoch": 9, "loss": 0.556, "val_acc": 0.9653, "val_macro_f1": 0.9616, "sec": 59}
+{"epoch": 10, "loss": 0.5474, "val_acc": 0.9601, "val_macro_f1": 0.9566, "sec": 60}
+{"epoch": 11, "loss": 0.5419, "val_acc": 0.9635, "val_macro_f1": 0.9582, "sec": 64}
+{"epoch": 12, "loss": 0.5338, "val_acc": 0.967, "val_macro_f1": 0.9621, "sec": 64}
+{"epoch": 13, "loss": 0.5358, "val_acc": 0.9635, "val_macro_f1": 0.9577, "sec": 64}
+{"epoch": 14, "loss": 0.5294, "val_acc": 0.967, "val_macro_f1": 0.9621, "sec": 69}
+{"epoch": 15, "loss": 0.5307, "val_acc": 0.9618, "val_macro_f1": 0.9572, "sec": 67}
+best val macro-F1 = 0.9621

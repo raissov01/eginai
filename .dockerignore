@@ -1,0 +1,10 @@
+**/.venv*
+**/node_modules
+**/__pycache__
+data
+ml
+materials
+replica
+docs
+.git
+web/dist

@@ -1,0 +1,12 @@
+torch>=2.5
+torchvision>=0.20
+timm==1.0.31
+onnx>=1.17
+onnxruntime==1.21.1
+onnxscript
+pyarrow>=18
+scikit-learn>=1.5
+matplotlib>=3.9
+pillow>=11
+numpy>=2
+pytest

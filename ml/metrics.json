@@ -1,0 +1,124 @@
+{
+ "n_test": 580,
+ "accuracy": 0.9707,
+ "macro_f1": 0.967,
+ "per_class": {
+  "fusarium_head_blight": {
+   "precision": 0.9919,
+   "recall": 0.984,
+   "f1-score": 0.988,
+   "support": 125.0
+  },
+  "glume_blotch": {
+   "precision": 0.875,
+   "recall": 0.9722,
+   "f1-score": 0.9211,
+   "support": 36.0
+  },
+  "healthy_ear": {
+   "precision": 0.9747,
+   "recall": 0.9506,
+   "f1-score": 0.9625,
+   "support": 81.0
+  },
+  "healthy_leaf": {
+   "precision": 0.9559,
+   "recall": 0.9848,
+   "f1-score": 0.9701,
+   "support": 66.0
+  },
+  "leaf_rust": {
+   "precision": 0.972,
+   "recall": 0.972,
+   "f1-score": 0.972,
+   "support": 107.0
+  },
+  "powdery_mildew": {
+   "precision": 0.9697,
+   "recall": 0.9412,
+   "f1-score": 0.9552,
+   "support": 102.0
+  },
+  "stripe_rust": {
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1-score": 1.0,
+   "support": 63.0
+  }
+ },
+ "cpu_ms_per_image_median": 57.1,
+ "confusion": [
+  [
+   123,
+   1,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   1,
+   35,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   4,
+   77,
+   0,
+   0,
+   0,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   65,
+   0,
+   1,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   1,
+   104,
+   2,
+   0
+  ],
+  [
+   0,
+   0,
+   1,
+   2,
+   3,
+   96,
+   0
+  ],
+  [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   63
+  ]
+ ],
+ "labels": [
+  "fusarium_head_blight",
+  "glume_blotch",
+  "healthy_ear",
+  "healthy_leaf",
+  "leaf_rust",
+  "powdery_mildew",
+  "stripe_rust"
+ ]
+}

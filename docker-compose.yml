@@ -1,0 +1,38 @@
+# Іске қосу:  docker compose up --build      → http://localhost:8000
+# Ботпен:     docker compose --profile bot up --build   (.env ішінде BOT_TOKEN)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: eginai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eginai}
+      POSTGRES_DB: eginai
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eginai"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://eginai:${POSTGRES_PASSWORD:-eginai}@db:5432/eginai
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports: ["${APP_PORT:-8000}:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+    restart: unless-stopped
+
+  bot:
+    build: { context: ., dockerfile: bot/Dockerfile }
+    profiles: [bot]
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN:-}
+      API_URL: http://api:8000
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8000}
+    depends_on: [api]
+    restart: on-failure
+
+volumes:
+  dbdata:

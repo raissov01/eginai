@@ -1,0 +1,10 @@
+{
+  "_source": "Project-AgML/wheat_disease_detection (CC-BY-4.0); названия классов — Qian et al., Agriculture 2025, 15(14):1526, раздел 2.1.1; сопоставлены по числу изображений и визуально",
+  "0": "powdery_mildew",
+  "1": "fusarium_head_blight",
+  "2": "leaf_rust",
+  "3": "stripe_rust",
+  "4": "glume_blotch",
+  "5": "healthy_ear",
+  "6": "healthy_leaf"
+}
