@@ -216,9 +216,18 @@ def main():
     ]
     cl = OUT / "parts.txt"
     cl.write_text("".join(f"file '{p}'\n" for p in parts))
-    final = ROOT / "materials" / "EginAI_Demo.mp4"
+    silent = OUT / "silent.mp4"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(cl), "-c:v", "libx264", "-preset", "veryfast", "-threads", "4", "-crf", "21",
-         "-pix_fmt", "yuv420p", "-c:a", "aac", "-movflags", "+faststart", str(final)])
+         "-pix_fmt", "yuv420p", "-an", str(silent)])
+    # Фондық музыка (materials/music.py синтездейді) — демо бөлігінің шекаралары бойынша
+    dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(silent)],
+                               capture_output=True, text=True, check=True).stdout)
+    demo_a = 6 + 9  # титул + мәселе карталары
+    subprocess.run(["python3", str(ROOT / "materials" / "music.py"), str(dur), str(demo_a), str(demo_a + end)], cwd=ROOT, check=True)
+    final = ROOT / "materials" / "EginAI_Demo.mp4"
+    run(["ffmpeg", "-y", "-i", str(silent), "-i", str(OUT / "music.wav"), "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+         "-af", "loudnorm=I=-18:TP=-2:LRA=11", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-shortest",
+         "-movflags", "+faststart", str(final)])
     print("→", final)
 
 
