@@ -60,8 +60,8 @@ function logo(s, x, y, size, bg = INK) {
   s.addShape(pres.shapes.OVAL, { x: x + 14.2 * k, y: y + 4 * k, w: 3.6 * k, h: 6 * k, fill: { color: WHEAT }, line: { color: WHEAT, width: 0 } })
 }
 
-// 1. Титул
 pres.addSection({ title: 'Кіріспе' })
+// 1. Титул
 let s = pres.addSlide({ masterName: 'EG_TITLE', sectionTitle: 'Кіріспе' })
 logo(s, 0.6, 0.55, 0.7)
 s.addText('EginAI', { placeholder: 'title' })
@@ -74,8 +74,7 @@ T(s, [
 s.addNotes(NOTE(1))
 
 // 2. Мәселе
-pres.addSection({ title: 'Мәселе және шешім' })
-s = content('Мәселе және шешім')
+s = content('Кіріспе')
 title(s, 'Ауру кеш байқалады — өнім жоғалады')
 box(s, 0.5, 1.25, 3.4, 3.7, INK, 'stat')
 T(s, '40%-ға дейін', { x: 0.75, y: 1.55, w: 3.0, h: 0.9, fontSize: 34, bold: true, color: WHEAT })
@@ -96,8 +95,30 @@ pains.forEach(([h, t], i) => {
 })
 s.addNotes(NOTE(2))
 
+// 8. Аналогтар
+s = content('Кіріспе')
+title(s, 'Аналогтардан айырмашылығы')
+const Y = '✓', N = '—'
+const rows = [
+  ['', 'Қазақ тілі', 'Бидай, СҚО аурулары', 'Аурулар картасы', 'Тегін, жарнамасыз', 'Telegram'],
+  ['Plantix', N, Y, N, N, N],
+  ['Agrio', N, N, N, N, N],
+  ['PlantVillage Nuru', N, 'әзірленуде', N, Y, N],
+  ['DoctorP', N, Y, N, Y, N],
+  ['EginAI', Y, Y, Y, Y, Y],
+]
+s.addTable(rows.map((r, ri) => r.map((c, ci) => ({
+  text: c, options: {
+    bold: ri === 0 || ci === 0 || ri === 5, fontSize: 13, align: ci === 0 ? 'left' : 'center', valign: 'middle',
+    color: ri === 5 ? INK : (c === Y ? LEAF : INK), fill: { color: ri === 0 ? FIELD : ri === 5 ? WHEAT : 'FFFFFF' },
+  },
+}))), { x: 0.5, y: 1.15, w: 9.0, colW: [1.9, 1.3, 1.65, 1.45, 1.5, 1.2], rowH: 0.45, border: { type: 'solid', pt: 1, color: LINE }, fontFace: 'Arial' })
+T(s, '77 нақты пікір бойынша басты шағымдар: «ИИ білмейді / қате айтады» (16), жарнама мен жазылым (11), қажет дақыл жоқ (8), «эксперт жауап бермейді» (5).', { x: 0.5, y: 4.2, w: 9.0, h: 0.6, fontSize: 13, color: MUTED })
+s.addNotes(NOTE(8))
+
+pres.addSection({ title: 'Шешім' })
 // 3. Шешім + экрандар
-s = content('Мәселе және шешім')
+s = content('Шешім')
 title(s, 'EginAI: фото → диагноз → кеңес → карта')
 const shots = [['ui-1-home-kk.png', 'Суретке түсіру'], ['ui-2-result-kk.png', 'Диагноз және белгілер аймағы'], ['ui-3-advice-kk.png', 'Кеңес: не істеу, қашан'], ['ui-7-map-ru.png', 'Аурулар ошақтарының картасы']]
 shots.forEach(([f, cap], i) => {
@@ -109,8 +130,7 @@ shots.forEach(([f, cap], i) => {
 s.addNotes(NOTE(3))
 
 // 4. Архитектура
-pres.addSection({ title: 'Технология' })
-s = content('Технология')
+s = content('Шешім')
 title(s, 'Қалай жұмыс істейді')
 s.addImage({ path: FIG('architecture.png'), x: 0.5, y: 1.1, w: 6.2, h: 3.18, objectName: 'arch', altText: 'Архитектура сызбасы' })
 const tech = [['ML', 'PyTorch, timm, EfficientNet-B0 → ONNX'], ['Backend', 'FastAPI, PostgreSQL, ONNX Runtime'], ['Кеңес', 'kk/ru білім базасы, BM25 (RAG), Claude — қалауы бойынша'], ['Клиенттер', 'React + Leaflet, aiogram 3 бот'], ['Іске қосу', 'docker compose up — бір команда']]
@@ -121,8 +141,28 @@ tech.forEach(([h, t], i) => {
 T(s, 'Фото серверде сақталмайды. Модель 16 МБ, кәдімгі процессорда жұмыс істейді.', { x: 0.5, y: 4.5, w: 6.2, h: 0.4, fontSize: 13, color: MUTED })
 s.addNotes(NOTE(4))
 
+// 9. Қауіпсіздік және іске қосу
+s = content('Шешім')
+title(s, 'Қауіпсіздік, деректер, іске қосу')
+const sec = [
+  ['Жеке деректер', 'Фото сақталмайды. Картаға тек келісіммен: ауру, күн, ~1 км орын. Тіркелу, аты, телефон жоқ.'],
+  ['Код', 'Кілттер тек .env-те. Файл шегі 10 МБ, бүлінген файлға 4xx, IP бойынша шектеу, root емес контейнер.'],
+  ['Лицензия', 'Код — MIT. Датасет CC-BY-4.0, кітапханалар — THIRD_PARTY.md тізімінде.'],
+  ['Тексеру', '52 автотест: қате енгізу, келісім, база құлағанда диагностика жұмысы, LLM-сіз жауап.'],
+]
+sec.forEach(([h, t], i) => {
+  const x = 0.5 + (i % 2) * 4.6, y = 1.15 + Math.floor(i / 2) * 1.45
+  box(s, x, y, 4.4, 1.3, FIELD, 'sec-' + i)
+  T(s, h, { x: x + 0.25, y: y + 0.15, w: 3.9, h: 0.32, fontSize: 15, bold: true })
+  T(s, t, { x: x + 0.25, y: y + 0.5, w: 3.95, h: 0.75, fontSize: 12, color: INK })
+})
+box(s, 0.5, 4.15, 9.0, 0.75, INK, 'run')
+T(s, [{ text: 'git clone …  &&  docker compose up', options: { fontFace: 'Courier New', color: WHEAT, bold: true } }, { text: '   →   http://localhost:8000', options: { color: 'FFFFFF' } }], { x: 0.75, y: 4.15, w: 8.5, h: 0.75, fontSize: 16, valign: 'middle' })
+s.addNotes(NOTE(9))
+
+pres.addSection({ title: 'Нәтижелер' })
 // 5. Деректер мен модель
-s = content('Технология')
+s = content('Нәтижелер')
 title(s, 'Деректер және модельді үйрету')
 const stats = [['4156', 'далалық фото\n(CC-BY-4.0)'], ['5845', 'белгіленген\nзақымдану аймағы'], ['7', 'класс: 5 ауру\n+ сау жапырақ/масақ']]
 stats.forEach(([n, l], i) => {
@@ -146,7 +186,6 @@ cls.forEach(([n, c], i) => {
 s.addNotes(NOTE(5))
 
 // 6. Нәтижелер
-pres.addSection({ title: 'Нәтижелер' })
 s = content('Нәтижелер')
 title(s, 'Тест жиынында: 97% дәлдік')
 const big = [[p1(M.accuracy), 'дәлдік (accuracy)'], [p1(M.macro_f1), 'macro-F1'], [Math.round(M.cpu_ms_per_image_median) + ' мс', 'бір фото, CPU']]
@@ -180,49 +219,8 @@ T(s, [
 ], { x: 6.0, y: 2.95, w: 3.5, h: 1.95, fontSize: 13, paraSpaceAfter: 6, valign: 'top' })
 s.addNotes(NOTE(7))
 
-// 8. Аналогтар
-pres.addSection({ title: 'Нарық' })
-s = content('Нарық')
-title(s, 'Аналогтардан айырмашылығы')
-const Y = '✓', N = '—'
-const rows = [
-  ['', 'Қазақ тілі', 'Бидай, СҚО аурулары', 'Аурулар картасы', 'Тегін, жарнамасыз', 'Telegram'],
-  ['Plantix', N, Y, N, N, N],
-  ['Agrio', N, N, N, N, N],
-  ['PlantVillage Nuru', N, 'әзірленуде', N, Y, N],
-  ['DoctorP', N, Y, N, Y, N],
-  ['EginAI', Y, Y, Y, Y, Y],
-]
-s.addTable(rows.map((r, ri) => r.map((c, ci) => ({
-  text: c, options: {
-    bold: ri === 0 || ci === 0 || ri === 5, fontSize: 13, align: ci === 0 ? 'left' : 'center', valign: 'middle',
-    color: ri === 5 ? INK : (c === Y ? LEAF : INK), fill: { color: ri === 0 ? FIELD : ri === 5 ? WHEAT : 'FFFFFF' },
-  },
-}))), { x: 0.5, y: 1.15, w: 9.0, colW: [1.9, 1.3, 1.65, 1.45, 1.5, 1.2], rowH: 0.45, border: { type: 'solid', pt: 1, color: LINE }, fontFace: 'Arial' })
-T(s, '77 нақты пікір бойынша басты шағымдар: «ИИ білмейді / қате айтады» (16), жарнама мен жазылым (11), қажет дақыл жоқ (8), «эксперт жауап бермейді» (5).', { x: 0.5, y: 4.2, w: 9.0, h: 0.6, fontSize: 13, color: MUTED })
-s.addNotes(NOTE(8))
-
-// 9. Қауіпсіздік және іске қосу
-s = content('Нарық')
-title(s, 'Қауіпсіздік, деректер, іске қосу')
-const sec = [
-  ['Жеке деректер', 'Фото сақталмайды. Картаға тек келісіммен: ауру, күн, ~1 км орын. Тіркелу, аты, телефон жоқ.'],
-  ['Код', 'Кілттер тек .env-те. Файл шегі 10 МБ, бүлінген файлға 4xx, IP бойынша шектеу, root емес контейнер.'],
-  ['Лицензия', 'Код — MIT. Датасет CC-BY-4.0, кітапханалар — THIRD_PARTY.md тізімінде.'],
-  ['Тексеру', '52 автотест: қате енгізу, келісім, база құлағанда диагностика жұмысы, LLM-сіз жауап.'],
-]
-sec.forEach(([h, t], i) => {
-  const x = 0.5 + (i % 2) * 4.6, y = 1.15 + Math.floor(i / 2) * 1.45
-  box(s, x, y, 4.4, 1.3, FIELD, 'sec-' + i)
-  T(s, h, { x: x + 0.25, y: y + 0.15, w: 3.9, h: 0.32, fontSize: 15, bold: true })
-  T(s, t, { x: x + 0.25, y: y + 0.5, w: 3.95, h: 0.75, fontSize: 12, color: INK })
-})
-box(s, 0.5, 4.15, 9.0, 0.75, INK, 'run')
-T(s, [{ text: 'git clone …  &&  docker compose up', options: { fontFace: 'Courier New', color: WHEAT, bold: true } }, { text: '   →   http://localhost:8000', options: { color: 'FFFFFF' } }], { x: 0.75, y: 4.15, w: 8.5, h: 0.75, fontSize: 16, valign: 'middle' })
-s.addNotes(NOTE(9))
-
-// 10. Келешек
 pres.addSection({ title: 'Келешек' })
+// 10. Келешек
 s = content('Келешек')
 title(s, 'Даму жоспары және коммерцияландыру')
 const road = [
