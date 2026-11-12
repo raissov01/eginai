@@ -76,3 +76,17 @@ def test_response_shape(client, predictor):
     assert 0 <= j["affected_pct"] <= 100
     assert j["advice"]["title"]
     assert j["ms"] > 0
+
+
+def test_uniform_green_is_unsure(predictor):
+    # Біртұтас жасыл кадр (жабық объектив, жасыл қабырға) — ойдан диагноз қоймау керек
+    r = predictor.predict(jpeg_bytes(Image.new("RGB", (640, 480), (40, 130, 40))))
+    assert r.unsure and r.reason == "not_plant"
+
+
+def test_one_pixel_image(client, predictor):
+    import io
+    buf = io.BytesIO()
+    Image.new("RGB", (1, 1), (0, 128, 0)).save(buf, "PNG")
+    r = client.post("/api/predict", files={"file": ("a.png", buf.getvalue(), "image/png")})
+    assert r.status_code == 200 and r.json()["unsure"] is True

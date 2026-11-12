@@ -53,3 +53,10 @@ def test_ask_endpoint(client, predictor):
     r = client.post("/api/ask", json={"question": "ақ ұнтақ жапырақта", "lang": "kk"})
     assert r.status_code == 200 and r.json()["context"][0]["class_id"] == "powdery_mildew"
     assert client.post("/api/ask", json={"question": "", "lang": "kk"}).status_code == 422
+
+
+def test_nan_is_422_not_500(client, predictor):
+    r = client.post("/api/cases", content=b'{"disease":"leaf_rust","confidence":NaN,"lat":1,"lon":1,"consent":true}',
+                    headers={"content-type": "application/json"})
+    assert r.status_code == 422
+    assert "input" not in r.text  # енгізілген мән кері қайтарылмайды

@@ -58,6 +58,15 @@ def load_image(data: bytes) -> Image.Image:
     return ImageOps.exif_transpose(img).convert("RGB")
 
 
+def texture(img: Image.Image) -> float:
+    """Жарықтықтың стандартты ауытқуы: біртұтас түсті сурет ≈ 0.
+
+    Нақты тест фотоларында ең кіші мән ≈ 15, сондықтан 6-дан төмені — бос кадр.
+    """
+    g = np.asarray(img.resize((96, 96)).convert("L"), dtype=np.float32)
+    return float(g.std())
+
+
 def plant_fraction(img: Image.Image) -> float:
     """Өсімдікке ұқсас (сары-жасыл-қоңыр, қанық) пикселдер үлесі.
 
@@ -73,7 +82,7 @@ def plant_fraction(img: Image.Image) -> float:
 
 
 class Predictor:
-    def __init__(self, model_dir: Path, min_conf: float = 0.5, min_plant: float = 0.08):
+    def __init__(self, model_dir: Path, min_conf: float = 0.5, min_plant: float = 0.08, min_texture: float = 6.0):
         model_dir = Path(model_dir)
         opts = ort.SessionOptions()
         opts.intra_op_num_threads = 2
@@ -81,7 +90,7 @@ class Predictor:
                                          providers=["CPUExecutionProvider"])
         self.w = np.load(model_dir / "classifier_w.npy")  # [C, 1280]
         self.labels: list[str] = json.loads((model_dir / "labels.json").read_text(encoding="utf-8"))
-        self.min_conf, self.min_plant = min_conf, min_plant
+        self.min_conf, self.min_plant, self.min_texture = min_conf, min_plant, min_texture
 
     @staticmethod
     def _tensor(img: Image.Image) -> np.ndarray:
@@ -117,7 +126,8 @@ class Predictor:
         order = np.argsort(-p)[:3]
         top = [(self.labels[i], float(p[i])) for i in order]
         pf = plant_fraction(img)
-        reason = "not_plant" if pf < self.min_plant else ("low_confidence" if top[0][1] < self.min_conf else None)
+        flat = texture(img) < self.min_texture  # біртұтас кадр (қабырға, жабық объектив)
+        reason = "not_plant" if pf < self.min_plant or flat else ("low_confidence" if top[0][1] < self.min_conf else None)
         pred = Prediction(top=top, unsure=reason is not None, reason=reason, plant_frac=pf)
         if with_cam and reason != "not_plant":
             pred.cam_jpeg_b64, pred.affected_pct = self._cam(feats, int(order[0]), img)

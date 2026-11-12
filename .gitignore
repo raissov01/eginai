@@ -11,3 +11,4 @@ ml/runs/
 backend/tests/.test.db
 *.log
 !ml/train.log
+materials/video/

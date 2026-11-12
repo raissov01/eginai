@@ -39,8 +39,18 @@ def seed_demo_points():
                                        "consent": True, "source": "demo"})
 
 
+SLOW = 1.6  # видео үшін баяулату
+MARKS: list[tuple[float, str]] = []
+T0 = [0.0]
+
+
+def mark(label):
+    """Видеодағы оқиға уақыты (титрлер үшін)."""
+    MARKS.append((round(time.monotonic() - T0[0], 2), label))
+
+
 def pause(page, s):
-    page.wait_for_timeout(int(s * 1000))
+    page.wait_for_timeout(int(s * 1000 * SLOW))
 
 
 def main():
@@ -51,26 +61,35 @@ def main():
                             record_video_dir=str(VID), record_video_size={"width": 412, "height": 860},
                             geolocation={"latitude": 51.62, "longitude": 69.95}, permissions=["geolocation"])
         page = ctx.new_page()
+        T0[0] = time.monotonic()
         page.goto(BASE + "/#diagnose")
         page.evaluate("localStorage.setItem('lang','kk')")
         page.reload()
         pause(page, 2.5)
         page.screenshot(path=FIG / "ui-1-home-kk.png")
+        mark("home")
+        pause(page, 1.5)
 
         # 1) Қоңыр тат
+        mark("upload_rust")
         page.locator("input[type=file]").nth(1).set_input_files(str(next(S.glob("leaf_rust_00048_0.jpg"))))
         page.wait_for_selector(".diag h1")
         pause(page, 2.5)
         page.screenshot(path=FIG / "ui-2-result-kk.png")
+        mark("result_rust")
+        pause(page, 1.5)
+        mark("cam_toggle")
         page.get_by_role("button", name="Түпнұсқа").click()
         pause(page, 1.5)
         page.get_by_role("button", name="Белгілер аймағы").click()
         pause(page, 1.5)
+        mark("advice")
         for _ in range(6):
             page.mouse.wheel(0, 260)
             pause(page, .7)
         page.screenshot(path=FIG / "ui-3-advice-kk.png")
         # Сұрақ қою
+        mark("ask")
         page.fill("#ask", "Қай кезде өңдеген дұрыс?")
         pause(page, .8)
         page.get_by_role("button", name="Сұрау").click()
@@ -79,6 +98,7 @@ def main():
         pause(page, 3)
         page.screenshot(path=FIG / "ui-4-ask-kk.png")
         # Картаға белгілеу
+        mark("consent")
         page.locator(".check input").scroll_into_view_if_needed()
         page.locator(".check input").check()
         pause(page, .8)
@@ -88,6 +108,7 @@ def main():
 
         # 2) Орысша, сары тат
         page.evaluate("window.scrollTo(0,0)")
+        mark("lang_ru")
         page.get_by_role("button", name="Рус").click()
         pause(page, 1)
         page.get_by_role("button", name="Новое фото").click() if page.get_by_role("button", name="Новое фото").count() else None
@@ -96,17 +117,20 @@ def main():
         page.wait_for_selector(".diag h1")
         pause(page, 3)
         page.screenshot(path=FIG / "ui-5-result-ru.png")
+        mark("result_stripe")
 
         # 3) Өсімдік емес фото — адал жауап
         page.evaluate("window.scrollTo(0,0)")
         page.get_by_role("button", name="Новое фото").last.click()
         pause(page, .8)
+        mark("not_plant")
         page.locator("input[type=file]").nth(1).set_input_files(str(ROOT / "materials" / "figures" / "not_plant.jpg"))
         page.wait_for_selector(".notice.warn")
         pause(page, 3)
         page.screenshot(path=FIG / "ui-6-unsure-ru.png")
 
         # 4) Карта
+        mark("map")
         page.goto(BASE + "/#map")
         pause(page, 3.5)
         page.screenshot(path=FIG / "ui-7-map-ru.png")
@@ -116,14 +140,20 @@ def main():
         pause(page, 1.5)
 
         # 5) Жоба туралы
+        mark("about")
         page.goto(BASE + "/#about")
         pause(page, 2.5)
         page.screenshot(path=FIG / "ui-8-about-ru.png", full_page=True)
-        pause(page, 1)
+        for _ in range(4):
+            page.mouse.wheel(0, 300)
+            pause(page, .8)
+        mark("end")
         ctx.close()
         b.close()
     vids = sorted(VID.glob("*.webm"), key=lambda f: f.stat().st_mtime)
-    print("video:", vids[-1] if vids else None)
+    import json
+    (VID / "marks.json").write_text(json.dumps({"video": str(vids[-1]), "marks": MARKS}, ensure_ascii=False, indent=1))
+    print("video:", vids[-1] if vids else None, MARKS)
 
 
 if __name__ == "__main__":

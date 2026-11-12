@@ -21,7 +21,8 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, File, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -106,6 +107,13 @@ def create_app() -> FastAPI:
     app = FastAPI(title="EginAI", version="1.0.0", lifespan=lifespan,
                   description="Бидай ауруларын фото бойынша анықтау")
     limiter = RateLimiter(int(os.environ.get("EGINAI_RATE_PER_MIN", "60")))
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError):
+        # Енгізілген мәнді кері қайтармаймыз: NaN JSON-ға сериализацияланбайды (500 болатын),
+        # ал үлкен мәтінді қайта жіберу — артық трафик.
+        errs = [{"loc": list(e.get("loc", [])), "msg": e.get("msg", ""), "type": e.get("type", "")} for e in exc.errors()]
+        return JSONResponse({"detail": errs}, status_code=422)
 
     def client_key(request: Request) -> str:
         return request.client.host if request.client else "?"
@@ -207,6 +215,8 @@ def create_app() -> FastAPI:
 
         @app.get("/{path:path}", include_in_schema=False)
         def spa(path: str):
+            if path == "api" or path.startswith("api/"):
+                raise HTTPException(404, {"code": "not_found", "message": "Unknown API route"})
             f = (WEB_DIST / path).resolve()
             if path and f.is_file() and WEB_DIST.resolve() in f.parents:
                 return FileResponse(f)
