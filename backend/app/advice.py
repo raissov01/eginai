@@ -72,14 +72,15 @@ def advise(class_id: str, lang: Lang) -> dict:
 
 # --- Іздеу (RAG-тың «R» бөлігі) ------------------------------------------
 
-def _tokens(text: str) -> list[str]:
-    """Қарапайым стемминг: сөздің алғашқы 5 әрпі.
+def _tokens(text: str, lang: str = "kk") -> list[str]:
+    """Қарапайым стемминг: сөздің алғашқы 4 (kk) немесе 5 (ru) әрпі.
 
     Қазақ және орыс тілі жалғамалы/флективті, сондықтан «сарғаяды», «сары»,
     «сарғайып» сияқты пішіндер бір түбірге жақындайды. Морфологиялық
     анализатор қоспай-ақ шағын база үшін жеткілікті.
     """
-    return [w[:5] for w in re.findall(r"[\wәғқңөұүһі]+", text.lower()) if len(w) > 2]
+    n = 4 if lang == "kk" else 5  # қазақ жұрнақтары түбірге тезірек жалғанады
+    return [w[:n] for w in re.findall(r"[\wәғқңөұүһі]+", text.lower()) if len(w) > 2]
 
 
 @lru_cache(maxsize=1)
@@ -92,17 +93,21 @@ def _index() -> tuple[list[Chunk], dict[str, BM25Okapi]]:
                     chunks.append(Chunk(cid, f, lang, f"{d['name'][lang]}. {d[f][lang]}"))
             for k in ("agro", "chemical"):
                 chunks.append(Chunk(cid, k, lang, f"{d['name'][lang]}. {d['actions'][k][lang]}"))
-    per_lang = {lang: BM25Okapi([_tokens(c.text) for c in chunks if c.lang == lang]) for lang in ("kk", "ru")}
+    per_lang = {lang: BM25Okapi([_tokens(c.text, lang) for c in chunks if c.lang == lang]) for lang in ("kk", "ru")}
     return chunks, per_lang
 
 
 def retrieve(question: str, lang: Lang, k: int = 4, class_id: str | None = None) -> list[Chunk]:
     chunks, bm = _index()
     pool = [c for c in chunks if c.lang == lang]
-    scores = bm[lang].get_scores(_tokens(question))
-    # Диагноз белгілі болса — сол ауруға қатысты фрагменттерге аздап басымдық
-    ranked = sorted(zip(scores, pool), key=lambda t: -(t[0] + (0.5 if t[1].class_id == class_id else 0)))
-    return [c for s, c in ranked[:k] if s > 0 or c.class_id == class_id]
+    scores = bm[lang].get_scores(_tokens(question, lang))
+    ranked = sorted(zip(scores, pool), key=lambda t: -t[0])
+    if class_id:
+        # Диагноз белгілі: алдымен сол аурудың ең жақын фрагменттері, сосын басқалары
+        own = [c for s, c in ranked if c.class_id == class_id][: k - 1]
+        other = [c for s, c in ranked if c.class_id != class_id and s > 0][:1]
+        return own + other
+    return [c for s, c in ranked[:k] if s > 0]
 
 
 # --- Генерация (RAG-тың «G» бөлігі, міндетті емес) -------------------------
@@ -148,7 +153,7 @@ def answer(question: str, lang: Lang, class_id: str | None = None) -> dict:
     if text is None:
         fallback = {"kk": "Базада сәйкес мәлімет табылмады. Агрономға немесе фитосанитарлық қызметке хабарласыңыз.",
                     "ru": "В базе знаний нет подходящих сведений. Обратитесь к агроному или в фитосанитарную службу."}
-        text = "\n".join(c.text for c in ctx) if ctx else fallback[lang]
+        text = "\n".join(c.text for c in ctx[:2]) if ctx else fallback[lang]
         by = "kb"
     else:
         by = "llm"

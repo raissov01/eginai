@@ -60,3 +60,9 @@ def test_llm_error_falls_back(monkeypatch):
     monkeypatch.setattr(anthropic, "Anthropic", Boom)
     r = advice.answer("мучнистый налёт на листьях", "ru")
     assert r["generated_by"] == "kb"
+
+
+def test_question_with_diagnosis_answers_about_that_disease():
+    r = advice.answer("Қай кезде өңдеген дұрыс?", "kk", class_id="leaf_rust")
+    assert r["context"][0]["class_id"] == "leaf_rust"
+    assert r["context"][0]["field"] in ("timing", "threshold", "chemical")

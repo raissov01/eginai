@@ -133,7 +133,7 @@ function Result({ lang, t, preview, res, onNew }: { lang: Lang; t: Texts; previe
         </header>
       )}
 
-      {res.top.length > 1 && (
+      {res.top.length > 1 && res.reason !== 'not_plant' && (
         <div className="alts">
           <h2>{t.alternatives}</h2>
           <ul>

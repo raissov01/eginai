@@ -149,7 +149,7 @@ diseases:
 
   glume_blotch:
     severity: medium
-    name: {kk: "Масақ септориозы", ru: "Септориоз колоса (пятнистость колосковых чешуй)"}
+    name: {kk: "Масақ септориозы", ru: "Септориоз колоса"}
     pathogen: "Parastagonospora nodorum"
     organ: {kk: "масақ, жапырақ", ru: "колос, лист"}
     symptoms:
