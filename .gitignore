@@ -12,3 +12,5 @@ backend/tests/.test.db
 *.log
 !ml/train.log
 materials/video/
+materials/zayavka_EginAI.docx
+materials/452560_*
