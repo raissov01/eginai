@@ -13,7 +13,7 @@
 Docker Compose v2 ғана керек. / Нужен только Docker с Compose v2.
 
 ```bash
-git clone <repo-url> eginai && cd eginai
+git clone https://github.com/raissov01/eginai.git eginai && cd eginai
 docker compose up --build
 ```
 

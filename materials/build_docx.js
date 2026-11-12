@@ -235,7 +235,7 @@ const body = [
     'Lewis P. et al. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks // NeurIPS. — 2020.',
     'Закон Республики Казахстан от 21 мая 2013 года № 94-V «О персональных данных и их защите».',
   ].map((t) => LI(t, 'src')),
-  new Paragraph({ spacing: { before: 240 }, children: [B('Ссылка на код и демо: '), new TextRun('репозиторий GitHub (указывается при подаче); запуск — docker compose up, затем http://localhost:8000.')] }),
+  new Paragraph({ spacing: { before: 240 }, children: [B('Ссылка на код и демо: '), new TextRun('https://github.com/raissov01/eginai — запуск: docker compose up, затем http://localhost:8000.')] }),
 ]
 
 const numLevel = (format, text) => ({ level: 0, format, text, alignment: AlignmentType.LEFT,
