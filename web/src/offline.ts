@@ -16,6 +16,7 @@ const SIZE = 224
 export type Bundle = {
   version: string; labels: string[]; classifier_w: number[][]
   thresholds: { min_conf: number; min_plant: number; min_texture: number }
+  temperature?: number
   names: Record<Lang, Record<string, string>>
   advice: Record<Lang, Record<string, Advice>>
   key: Record<Lang, KeyGroup[]>
@@ -118,7 +119,7 @@ async function infer(blob: Blob, b: Bundle): Promise<Run> {
   const bmp = await createImageBitmap(blob, { imageOrientation: 'from-image' })
   const s = await getSession()
   const out = await s.run({ image: new ort.Tensor('float32', tensorOf(bmp), [1, 3, SIZE, SIZE]) })
-  const logits = Array.from(out.logits.data as Float32Array)
+  const logits = Array.from(out.logits.data as Float32Array).map((v) => v / (b.temperature ?? 1))
   const mx = Math.max(...logits)
   const e = logits.map((v) => Math.exp(v - mx))
   const z = e.reduce((a, v) => a + v, 0)

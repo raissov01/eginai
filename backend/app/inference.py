@@ -93,6 +93,8 @@ class Predictor:
         self.w = np.load(model_dir / "classifier_w.npy")  # [C, 1280]
         self.labels: list[str] = json.loads((model_dir / "labels.json").read_text(encoding="utf-8"))
         self.min_conf, self.min_plant, self.min_texture = min_conf, min_plant, min_texture
+        cal = model_dir / "calibration.json"  # ml/calibrate.py: logits / T (болжам өзгермейді)
+        self.temperature = float(json.loads(cal.read_text())["temperature"]) if cal.exists() else 1.0
 
     @staticmethod
     def _tensor(img: Image.Image) -> np.ndarray:
@@ -122,7 +124,8 @@ class Predictor:
         img = load_image(data)
         img.thumbnail((1024, 1024))  # үлкен суреттерді ерте кішірейту — жылдамдық
         logits, feats = self.sess.run(None, {"image": self._tensor(img)})
-        z = logits[0] - logits[0].max()
+        z = logits[0] / self.temperature
+        z = z - z.max()
         p = np.exp(z) / np.exp(z).sum()
         flat = texture(img) < self.min_texture  # біртұтас кадр (қабырға, жабық объектив)
         return p, feats, img, plant_fraction(img), flat

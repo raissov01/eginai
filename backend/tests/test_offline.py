@@ -8,7 +8,7 @@ def test_offline_bundle(client, predictor):
     assert set(j["advice"]) == {"kk", "ru"} and j["advice"]["ru"]["leaf_rust"]["threshold_pct"] == [1, 5]
     assert len(j["key"]["kk"]) >= 2 and j["names"]["kk"]["leaf_rust"] == "Қоңыр тат"
     assert j["thresholds"] == {"min_conf": 0.5, "min_plant": 0.08, "min_texture": 6.0}
-    assert j["version"]
+    assert j["version"] and j["temperature"] > 0
 
 
 def test_offline_model_file(client, predictor):

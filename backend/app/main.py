@@ -171,6 +171,7 @@ def create_app() -> FastAPI:
             "labels": p.labels,
             "classifier_w": p.w.round(5).tolist(),
             "thresholds": {"min_conf": p.min_conf, "min_plant": p.min_plant, "min_texture": p.min_texture},
+            "temperature": p.temperature,
             "names": {lg: {c: advice.name(c, lg) for c in p.labels} for lg in ("kk", "ru")},
             "advice": {lg: {c: advice.advise(c, lg) for c in p.labels} for lg in ("kk", "ru")},
             "key": {lg: advice.symptom_key(lg) for lg in ("kk", "ru")},
