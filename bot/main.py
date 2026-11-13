@@ -25,6 +25,7 @@ from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import (BotCommand, BufferedInputFile, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup,
                            KeyboardButton, Message, ReplyKeyboardMarkup, ReplyKeyboardRemove)
 
+from . import stt
 from .texts import T, format_alert, format_history, format_reminder, format_result
 
 log = logging.getLogger("eginai.bot")
@@ -287,23 +288,50 @@ async def cancel(m: Message):
     await m.answer(T[lang_of(m.from_user.id)]["cancelled"], reply_markup=ReplyKeyboardRemove())
 
 
-@dp.message(F.text)
-async def on_text(m: Message):
-    """Еркін сұрақ → /api/ask (соңғы диагноз контекст ретінде)."""
-    uid = m.from_user.id
-    lang = lang_of(uid, m.from_user.language_code)
-    q = (m.text or "").strip()[:500]
-    if len(q) < 2:
-        await m.answer(T[lang]["ask_hint"])
-        return
+async def answer_question(m: Message, q: str, lang: str):
     try:
-        r = await http.post("/api/ask", json={"question": q, "lang": lang,
-                                              "class_id": LAST.get(uid, {}).get("disease")})
+        r = await http.post("/api/ask", json={"question": q[:500], "lang": lang,
+                                              "class_id": LAST.get(m.from_user.id, {}).get("disease")})
         r.raise_for_status()
         await m.answer(escape(r.json()["answer"]))
     except httpx.HTTPError:
         await m.answer(T[lang]["error"])
 
+
+@dp.message(F.voice)
+async def on_voice(m: Message):
+    """Дауыстық сұрақ → Vosk (kk/ru) → /api/ask."""
+    lang = lang_of(m.from_user.id, m.from_user.language_code)
+    t = T[lang]
+    if not stt.available(lang):
+        await m.answer(t["voice_off"])
+        return
+    if (m.voice.duration or 0) > stt.MAX_SECONDS:
+        await m.answer(t["voice_long"])
+        return
+    f = await m.bot.get_file(m.voice.file_id)
+    data = (await m.bot.download_file(f.file_path)).read()
+    try:
+        q = await asyncio.to_thread(stt.transcribe, data, lang)
+    except Exception as e:  # ffmpeg/vosk қатесі — пайдаланушыға түсінікті жауап
+        log.warning("stt failed: %s", e)
+        q = ""
+    if len(q) < 2:
+        await m.answer(t["voice_empty"])
+        return
+    await m.answer(t["voice_heard"].format(q=escape(q)))
+    await answer_question(m, q, lang)
+
+
+@dp.message(F.text)
+async def on_text(m: Message):
+    """Еркін сұрақ → /api/ask (соңғы диагноз контекст ретінде)."""
+    lang = lang_of(m.from_user.id, m.from_user.language_code)
+    q = (m.text or "").strip()
+    if len(q) < 2:
+        await m.answer(T[lang]["ask_hint"])
+        return
+    await answer_question(m, q, lang)
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
