@@ -6,6 +6,7 @@ export type Advice = {
   symptoms: string; conditions: string; threshold: string
   actions: { agro: string; chemical: string }
   timing: string; prevention: string; similar: string
+  threshold_pct: [number, number] | null
   sources: { title: string; url: string }[]
 }
 export type Prediction = {
@@ -15,12 +16,20 @@ export type Prediction = {
   cam: string | null
   affected_pct: number | null
   advice: Advice | null
+  n_images: number
+  n_used: number
   ms: number
 }
 export type Feature = {
   geometry: { coordinates: [number, number] }
   properties: { disease: string; name: string; confidence: number; date: string }
 }
+export type Weather = {
+  source: string; updated: string; in_season: boolean
+  spray_windows: { start: string; end: string; hours: number; wind_max: number; t_min: number; t_max: number }[]
+  risk: { id: string; name: string; level: 'high' | 'moderate' | 'low'; score: number; reason: string }[]
+}
+export type KeyGroup = { id: string; name: string; options: { id: string; name: string; look: string }[] }
 export type DiseaseClass = { id: string; name: string; severity: string }
 
 export class ApiError extends Error {
@@ -39,9 +48,9 @@ async function call<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  predict(file: Blob, lang: Lang) {
+  predict(files: Blob[], lang: Lang) {
     const fd = new FormData()
-    fd.append('file', file, 'photo.jpg')
+    files.forEach((f, i) => fd.append('files', f, `photo${i}.jpg`))
     return call<Prediction>(`/api/predict?lang=${lang}`, { method: 'POST', body: fd })
   },
   ask(question: string, lang: Lang, classId?: string) {
@@ -59,6 +68,17 @@ export const api = {
   map(days: number, lang: Lang) {
     return call<{ features: Feature[] }>(`/api/map?days=${days}&lang=${lang}`)
   },
+  feedback(body: { predicted: string; confidence: number; correct: boolean; actual?: string | null }) {
+    return call<{ id: number }>('/api/feedback', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...body, source: 'web' }),
+    })
+  },
+  weather(lat: number, lon: number, lang: Lang) {
+    return call<Weather>(`/api/weather?lat=${lat.toFixed(2)}&lon=${lon.toFixed(2)}&lang=${lang}`)
+  },
+  symptomKey(lang: Lang) { return call<KeyGroup[]>(`/api/symptom-key?lang=${lang}`) },
+  advice(id: string, lang: Lang) { return call<Advice>(`/api/advice/${id}?lang=${lang}`) },
   classes(lang: Lang) { return call<DiseaseClass[]>(`/api/classes?lang=${lang}`) },
 }
 

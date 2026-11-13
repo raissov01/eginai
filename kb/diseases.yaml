@@ -6,7 +6,8 @@
 # применению на территории Республики Казахстан» и по инструкции к препарату.
 #
 # Поля: name, pathogen, organ, symptoms, conditions, threshold, actions
-# (agro / chemical), timing, prevention, similar. Каждое текстовое поле — kk и ru.
+# (agro / chemical), timing, prevention, similar, key (where + look — офлайн определитель),
+# threshold_pct ([низ, верх] %, или null). Каждое текстовое поле — kk и ru.
 
 sources:
   - id: fao
@@ -25,6 +26,10 @@ sources:
 diseases:
   leaf_rust:
     severity: high
+    key:
+      where: [leaf]
+      look: {kk: "Ретсіз шашыраған ұсақ қызғылт-қоңыр жастықшалар; сүртсе саусақта тот түсті ұнтақ қалады", ru: "Мелкие рыже-бурые подушечки, разбросаны беспорядочно; при растирании пальцы пачкаются ржавой пылью"}
+    threshold_pct: [1, 5]   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Қоңыр тат", ru: "Бурая (листовая) ржавчина"}
     pathogen: "Puccinia triticina"
     organ: {kk: "жапырақ", ru: "лист"}
@@ -56,6 +61,10 @@ diseases:
 
   stripe_rust:
     severity: high
+    key:
+      where: [leaf, ear]
+      look: {kk: "Тамыр бойымен жолақ болып тізілген ашық-сары пустулалар", ru: "Ярко-жёлтые пустулы, выстроенные полосками вдоль жилок"}
+    threshold_pct: [0.5, 1]   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Сары (жолақты) тат", ru: "Жёлтая (полосатая) ржавчина"}
     pathogen: "Puccinia striiformis f. sp. tritici"
     organ: {kk: "жапырақ, масақ", ru: "лист, колос"}
@@ -87,6 +96,10 @@ diseases:
 
   powdery_mildew:
     severity: medium
+    key:
+      where: [leaf]
+      look: {kk: "Ақ немесе сұр мамық тәрізді өңез, саусақпен сүртіледі", ru: "Белый или серый ватный налёт, стирается пальцем"}
+    threshold_pct: [3, 5]   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Ақ ұнтақ ауруы", ru: "Мучнистая роса"}
     pathogen: "Blumeria graminis f. sp. tritici"
     organ: {kk: "жапырақ, сабақ", ru: "лист, стебель"}
@@ -118,6 +131,10 @@ diseases:
 
   fusarium_head_blight:
     severity: high
+    key:
+      where: [ear]
+      look: {kk: "Жасыл масақта ағарып кеткен масақшалар, түбінде қызғылт-сарғыш өңез", ru: "Обесцвеченные (белёсые) колоски на зелёном колосе, у основания розово-оранжевый налёт"}
+    threshold_pct: null   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Масақ фузариозы", ru: "Фузариоз колоса"}
     pathogen: "Fusarium graminearum, F. culmorum и др."
     organ: {kk: "масақ", ru: "колос"}
@@ -149,6 +166,10 @@ diseases:
 
   glume_blotch:
     severity: medium
+    key:
+      where: [ear, leaf]
+      look: {kk: "Масақ қабыршақтарында қоңыр дақтар (жиі күңгірт жиекті); жапырақта сары жиекті қоңыр дақтар", ru: "Бурые пятна на чешуях колоса, часто с тёмной каймой; на листьях бурые пятна с жёлтым ореолом"}
+    threshold_pct: [5, 10]   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Масақ септориозы", ru: "Септориоз колоса"}
     pathogen: "Parastagonospora nodorum"
     organ: {kk: "масақ, жапырақ", ru: "колос, лист"}
@@ -180,6 +201,10 @@ diseases:
 
   healthy_leaf:
     severity: none
+    key:
+      where: [leaf]
+      look: {kk: "Жапырақ жасыл: дақ, өңез, жолақ жоқ", ru: "Лист зелёный: без пятен, налёта и полос"}
+    threshold_pct: null   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Сау жапырақ", ru: "Здоровый лист"}
     pathogen: "—"
     organ: {kk: "жапырақ", ru: "лист"}
@@ -203,6 +228,10 @@ diseases:
 
   healthy_ear:
     severity: none
+    key:
+      where: [ear]
+      look: {kk: "Масақ біркелкі түсті: ағарған масақша мен дақ жоқ", ru: "Колос ровного цвета: без белёсых колосков и пятен"}
+    threshold_pct: null   # шектің төменгі/жоғарғы ориентирі, % (threshold мәтінінен)
     name: {kk: "Сау масақ", ru: "Здоровый колос"}
     pathogen: "—"
     organ: {kk: "масақ", ru: "колос"}

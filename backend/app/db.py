@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Float, Integer, String, create_engine
+from sqlalchemy import Boolean, DateTime, Float, Integer, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 
@@ -27,6 +27,20 @@ class Case(Base):
     lat: Mapped[float] = mapped_column(Float)
     lon: Mapped[float] = mapped_column(Float)
     source: Mapped[str] = mapped_column(String(10))  # web | bot | demo
+
+
+class Feedback(Base):
+    """«Диагноз дұрыс па?» жауабы. Фото да, координата да сақталмайды."""
+    __tablename__ = "feedback"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True,
+                                                 default=lambda: datetime.now(timezone.utc))
+    predicted: Mapped[str] = mapped_column(String(40), index=True)
+    confidence: Mapped[float] = mapped_column(Float)
+    correct: Mapped[bool] = mapped_column(Boolean)
+    actual: Mapped[str | None] = mapped_column(String(40), nullable=True)  # фермер/агроном білсе
+    source: Mapped[str] = mapped_column(String(10))
 
 
 def database_url() -> str:

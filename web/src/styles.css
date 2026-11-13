@@ -151,3 +151,22 @@ main { flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: 20px 16p
 .about ol, .about ul { padding-left: 1.3em; }
 .about li + li { margin-top: 6px; }
 .about h2 { margin-top: 24px; }
+
+/* Қосымша құралдар (Extras.tsx) */
+.field { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.field select, .field input { min-height: 48px; padding: 10px 12px; font: inherit; border: 1px solid var(--muted); border-radius: var(--radius); background: var(--paper); }
+.calc { margin-top: 8px; }
+.addphoto { margin: 4px 0 16px; }
+.addphoto .fine { margin: 6px 0 0; }
+.risk, .windows, .options { list-style: none; margin: 0 0 12px; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+.risk li, .windows li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 14px; }
+.windows li { flex-direction: column; gap: 2px; }
+.risk li + li, .windows li + li, .options li + li { border-top: 1px solid var(--line); }
+.risk li.focus { background: var(--field); }
+.lvl { flex: none; min-width: 72px; text-align: center; padding: 2px 8px; border-radius: 6px; border: 1px solid; font-size: .85rem; }
+.lvl-high { background: var(--rust-bg); border-color: #E3A58B; color: var(--rust); }
+.lvl-moderate { background: var(--amber-bg); border-color: #E2C36B; color: var(--amber); }
+.lvl-low { background: var(--ok-bg); border-color: #A9CBAE; color: var(--leaf); }
+.options button { width: 100%; text-align: left; padding: 12px 14px; min-height: 48px; background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; }
+.options button:hover { background: var(--field); }
+.key summary { cursor: pointer; min-height: 32px; }

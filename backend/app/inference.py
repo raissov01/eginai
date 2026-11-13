@@ -42,6 +42,8 @@ class Prediction:
     affected_pct: float | None = None  # белгілер ауданының бағасы, %
     ms: float = 0.0
     plant_frac: float = field(default=0.0, repr=False)
+    probs: np.ndarray | None = field(default=None, repr=False)  # барлық кластардың ықтималдығы
+    n_used: int = 1                    # біріктіруге кірген фото саны (өсімдік еместер шығарылады)
 
 
 def load_image(data: bytes) -> Image.Image:
@@ -116,20 +118,39 @@ class Predictor:
         out.save(buf, "JPEG", quality=82)
         return base64.b64encode(buf.getvalue()).decode(), round(affected, 1)
 
-    def predict(self, data: bytes, with_cam: bool = True) -> Prediction:
-        t0 = time.perf_counter()
+    def _infer(self, data: bytes) -> tuple[np.ndarray, np.ndarray, Image.Image, float, bool]:
         img = load_image(data)
         img.thumbnail((1024, 1024))  # үлкен суреттерді ерте кішірейту — жылдамдық
         logits, feats = self.sess.run(None, {"image": self._tensor(img)})
         z = logits[0] - logits[0].max()
         p = np.exp(z) / np.exp(z).sum()
+        flat = texture(img) < self.min_texture  # біртұтас кадр (қабырға, жабық объектив)
+        return p, feats, img, plant_fraction(img), flat
+
+    def _decide(self, p: np.ndarray, pf: float, not_plant: bool) -> Prediction:
         order = np.argsort(-p)[:3]
         top = [(self.labels[i], float(p[i])) for i in order]
-        pf = plant_fraction(img)
-        flat = texture(img) < self.min_texture  # біртұтас кадр (қабырға, жабық объектив)
-        reason = "not_plant" if pf < self.min_plant or flat else ("low_confidence" if top[0][1] < self.min_conf else None)
-        pred = Prediction(top=top, unsure=reason is not None, reason=reason, plant_frac=pf)
-        if with_cam and reason != "not_plant":
-            pred.cam_jpeg_b64, pred.affected_pct = self._cam(feats, int(order[0]), img)
+        reason = "not_plant" if not_plant else ("low_confidence" if top[0][1] < self.min_conf else None)
+        return Prediction(top=top, unsure=reason is not None, reason=reason, plant_frac=pf, probs=p)
+
+    def predict(self, data: bytes, with_cam: bool = True) -> Prediction:
+        return self.predict_many([data], with_cam)
+
+    def predict_many(self, items: list[bytes], with_cam: bool = True) -> Prediction:
+        """Бір өсімдіктің 1–3 фотосы: өсімдік бар фотолардың ықтималдықтары орташаланады.
+
+        CAM — қорытынды класқа ең сенімді фотодан. Бір файл бүлінген болса — ImageError.
+        """
+        t0 = time.perf_counter()
+        runs = [self._infer(d) for d in items]
+        plant = [r for r in runs if not (r[3] < self.min_plant or r[4])]
+        used = plant or runs
+        p = np.mean([r[0] for r in used], axis=0)
+        pred = self._decide(p, max(r[3] for r in used), not_plant=not plant)
+        pred.n_used = len(plant)
+        if with_cam and pred.reason != "not_plant":
+            ci = int(np.argmax(p))
+            best = max(used, key=lambda r: r[0][ci])
+            pred.cam_jpeg_b64, pred.affected_pct = self._cam(best[1], ci, best[2])
         pred.ms = round((time.perf_counter() - t0) * 1000, 1)
         return pred

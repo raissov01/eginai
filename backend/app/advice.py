@@ -62,12 +62,27 @@ def advise(class_id: str, lang: Lang) -> dict:
         "symptoms": d["symptoms"][lang],
         "conditions": d["conditions"][lang],
         "threshold": d["threshold"][lang],
+        "threshold_pct": d.get("threshold_pct"),
         "actions": {"agro": d["actions"]["agro"][lang], "chemical": d["actions"]["chemical"][lang]},
         "timing": d["timing"][lang],
         "prevention": d["prevention"][lang],
         "similar": d["similar"][lang],
         "sources": [{"title": s["title"], "url": s["url"]} for s in kb()["sources"]],
     }
+
+
+WHERE = {"leaf": {"kk": "Жапырақта", "ru": "На листьях"}, "ear": {"kk": "Масақта", "ru": "На колосе"}}
+
+
+def symptom_key(lang: Lang) -> list[dict]:
+    """Офлайн белгілер анықтағышы: қай жерде → неге ұқсайды → ауру. Сау нұсқалар соңында."""
+    out = []
+    for w, title in WHERE.items():
+        opts = [{"id": cid, "name": d["name"][lang], "look": d["key"]["look"][lang]}
+                for cid, d in kb()["diseases"].items() if w in d["key"]["where"]]
+        opts.sort(key=lambda o: o["id"].startswith("healthy"))
+        out.append({"id": w, "name": title[lang], "options": opts})
+    return out
 
 
 # --- Іздеу (RAG-тың «R» бөлігі) ------------------------------------------

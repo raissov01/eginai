@@ -1,40 +1,45 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, ApiError, shrink, type Prediction } from './api'
+import { Feedback, SymptomKey, ThresholdCalc, WeatherPanel } from './Extras'
 import type { Lang, Texts } from './i18n'
 
 type Props = { lang: Lang; t: Texts }
 type State =
   | { kind: 'idle' }
   | { kind: 'loading'; preview: string }
-  | { kind: 'done'; preview: string; res: Prediction; file: Blob }
-  | { kind: 'error'; preview?: string; message: string; file?: Blob }
+  | { kind: 'done'; preview: string; res: Prediction; files: Blob[] }
+  | { kind: 'error'; preview?: string; message: string; files?: Blob[] }
 
 export default function Diagnose({ lang, t }: Props) {
   const [st, setSt] = useState<State>({ kind: 'idle' })
   const camRef = useRef<HTMLInputElement>(null)
   const galRef = useRef<HTMLInputElement>(null)
 
-  async function run(file: Blob, preview: string) {
+  async function run(files: Blob[], preview: string) {
     setSt({ kind: 'loading', preview })
     try {
-      const res = await api.predict(file, lang)
-      setSt({ kind: 'done', preview, res, file })
+      const res = await api.predict(files, lang)
+      setSt({ kind: 'done', preview, res, files })
     } catch (e) {
       const message = e instanceof ApiError && e.message ? e.message : t.netError
-      setSt({ kind: 'error', preview, message, file })
+      setSt({ kind: 'error', preview, message, files })
     }
   }
 
+  // Бірінші фото — жаңа талдау; нәтиже бетінде «тағы фото қосу» — сол өсімдіктің 2–3-фотосы
+  const adding = useRef(false)
   async function onFile(f?: File) {
     if (!f) return
     const small = await shrink(f)
-    run(small, URL.createObjectURL(small))
+    if (adding.current && st.kind === 'done') run([...st.files, small].slice(0, 3), st.preview)
+    else run([small], URL.createObjectURL(small))
+    adding.current = false
   }
 
   // Тіл ауысқанда нәтижені сол тілде қайта сұраймыз (кеңес мәтіні өзгереді)
   const lastLang = useRef(lang)
   useEffect(() => {
-    if (lastLang.current !== lang && st.kind === 'done') run(st.file, st.preview)
+    if (lastLang.current !== lang && st.kind === 'done') run(st.files, st.preview)
     lastLang.current = lang
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang])
@@ -63,6 +68,7 @@ export default function Diagnose({ lang, t }: Props) {
           <h2>{t.tipsTitle}</h2>
           <ul>{t.tips.map((x) => <li key={x}>{x}</li>)}</ul>
         </div>
+        <SymptomKey lang={lang} t={t} />
       </section>
     )
   }
@@ -83,17 +89,29 @@ export default function Diagnose({ lang, t }: Props) {
         {st.preview && <figure className="photo"><img src={st.preview} alt="" /></figure>}
         <div className="notice error" role="alert">{st.message}</div>
         <div className="row">
-          {st.file && <button className="btn-primary" onClick={() => run(st.file!, st.preview!)}>{t.retry}</button>}
+          {st.files && <button className="btn-primary" onClick={() => run(st.files!, st.preview!)}>{t.retry}</button>}
           <button className="btn-secondary" onClick={reset}>{t.newPhoto}</button>
         </div>
       </section>
     )
   }
 
-  return <Result lang={lang} t={t} preview={st.preview} res={st.res} onNew={reset} />
+  const addMore = st.files.length < 3
+    ? () => { adding.current = true; camRef.current?.click() }
+    : undefined
+  return (
+    <>
+      {inputs}
+      <Result lang={lang} t={t} preview={st.preview} res={st.res} onNew={reset} onAdd={addMore} nFiles={st.files.length} />
+    </>
+  )
 }
 
-function Result({ lang, t, preview, res, onNew }: { lang: Lang; t: Texts; preview: string; res: Prediction; onNew: () => void }) {
+function Result({ lang, t, preview, res, onNew, onAdd, nFiles }: {
+  lang: Lang; t: Texts; preview: string; res: Prediction; onNew: () => void; onAdd?: () => void; nFiles: number
+}) {
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([])
+  useEffect(() => { api.classes(lang).then(setClasses).catch(() => {}) }, [lang])
   const [showCam, setShowCam] = useState(true)
   const top = res.top[0]
   const a = res.advice
@@ -117,6 +135,15 @@ function Result({ lang, t, preview, res, onNew }: { lang: Lang; t: Texts; previe
           <p>{res.reason === 'not_plant' ? t.unsureNotPlant : t.unsureLow}</p>
         </div>
       )}
+
+      {res.n_images > 1 && <p className="fine">{t.photosUsed(res.n_used, res.n_images)}</p>}
+      {onAdd && res.reason !== 'not_plant' && (
+        <div className="addphoto">
+          <button className="btn-secondary" onClick={onAdd}>{t.addPhoto(nFiles + 1)}</button>
+          <p className="fine">{t.addPhotoHint}</p>
+        </div>
+      )}
+      {res.unsure && <SymptomKey lang={lang} t={t} />}
 
       {a && (
         <header className={`diag sev-${a.severity}`}>
@@ -155,6 +182,7 @@ function Result({ lang, t, preview, res, onNew }: { lang: Lang; t: Texts; previe
           <Sec title={t.sec.symptoms} text={a.symptoms} open />
           <Sec title={t.sec.timing} text={a.timing} />
           <Sec title={t.sec.threshold} text={a.threshold} />
+          {a.threshold_pct && <ThresholdCalc t={t} range={a.threshold_pct} />}
           <Sec title={t.sec.conditions} text={a.conditions} />
           <Sec title={t.sec.prevention} text={a.prevention} />
           <Sec title={t.sec.similar} text={a.similar} />
@@ -165,6 +193,8 @@ function Result({ lang, t, preview, res, onNew }: { lang: Lang; t: Texts; previe
         </div>
       )}
 
+      {a && a.severity !== 'none' && <WeatherPanel lang={lang} t={t} focus={top.id} />}
+      {a && !res.unsure && <Feedback t={t} predicted={top.id} confidence={top.prob} options={classes} />}
       {a && !res.unsure && <MapConsent t={t} disease={top.id} confidence={top.prob} />}
       {a && <Ask lang={lang} t={t} classId={top.id} />}
 
