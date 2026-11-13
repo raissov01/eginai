@@ -22,6 +22,16 @@ export default function Diagnose({ lang, t }: Props) {
       const res = await api.predict(files, lang)
       setSt({ kind: 'done', preview, res, files })
     } catch (e) {
+      // Желі жоқ (ApiError емес) және модель жүктелген болса — құрылғының өзінде талдаймыз
+      if (!(e instanceof ApiError)) {
+        try {
+          const off = await import('./offline')
+          if (await off.isReady()) {
+            setSt({ kind: 'done', preview, res: await off.predictOffline(files, lang), files })
+            return
+          }
+        } catch { /* төмендегі желі қатесін көрсетеміз */ }
+      }
       const message = e instanceof ApiError && e.message ? e.message : t.netError
       setSt({ kind: 'error', preview, message, files })
     }
@@ -70,6 +80,7 @@ export default function Diagnose({ lang, t }: Props) {
           <ul>{t.tips.map((x) => <li key={x}>{x}</li>)}</ul>
         </div>
         <SymptomKey lang={lang} t={t} />
+        <OfflineMode t={t} />
       </section>
     )
   }
@@ -137,6 +148,7 @@ function Result({ lang, t, preview, res, onNew, onAdd, nFiles }: {
         </div>
       )}
 
+      {res.offline && <p className="notice" role="status">{t.offBadge}</p>}
       {res.n_images > 1 && <p className="fine">{t.photosUsed(res.n_used, res.n_images)}</p>}
       {res.reason !== 'not_plant' && <FieldTag t={t} res={res} preview={preview} />}
       {onAdd && res.reason !== 'not_plant' && (
@@ -203,6 +215,34 @@ function Result({ lang, t, preview, res, onNew, onAdd, nFiles }: {
 
       <button className="btn-secondary wide" onClick={onNew}>{t.newPhoto}</button>
     </section>
+  )
+}
+
+function OfflineMode({ t }: { t: Texts }) {
+  const [st, setSt] = useState<'unknown' | 'none' | 'ready' | 'err' | number>('unknown')
+  useEffect(() => {
+    if (!('caches' in window)) return
+    import('./offline').then((m) => m.isReady()).then((ok) => setSt(ok ? 'ready' : 'none')).catch(() => setSt('none'))
+  }, [])
+  if (st === 'unknown') return null
+  async function get() {
+    setSt(0)
+    try { const m = await import('./offline'); await m.download((p) => setSt(Math.round(p * 100))); setSt('ready') } catch { setSt('err') }
+  }
+  async function del() { const m = await import('./offline'); await m.remove(); setSt('none') }
+  return (
+    <div className="panel offline">
+      <h2>{t.offTitle}</h2>
+      {st === 'ready' ? (
+        <div className="row"><p className="grow">{t.offReady}</p><button className="btn-link" onClick={del}>{t.offRemove}</button></div>
+      ) : typeof st === 'number' ? <p role="status">{t.offBusy(st)}</p> : (
+        <>
+          <p className="muted">{t.offText}</p>
+          <button className="btn-secondary" onClick={get}>{t.offGet}</button>
+          {st === 'err' && <p className="notice error" role="alert">{t.offErr}</p>}
+        </>
+      )}
+    </div>
   )
 }
 

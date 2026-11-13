@@ -19,6 +19,7 @@ export type Prediction = {
   n_images: number
   n_used: number
   ms: number
+  offline?: boolean
 }
 export type Feature = {
   geometry: { coordinates: [number, number] }

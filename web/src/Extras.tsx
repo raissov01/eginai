@@ -203,10 +203,16 @@ export function SymptomKey({ lang, t }: { lang: Lang; t: Texts }) {
 
   async function open(e: React.SyntheticEvent<HTMLDetailsElement>) {
     if (!e.currentTarget.open || key) return
-    try { setKey(await api.symptomKey(lang)) } catch { setError(true) }
+    try { setKey(await api.symptomKey(lang)) } catch {
+      const b = await import('./offline').then((m) => m.getBundle()).catch(() => null)
+      if (b) setKey(b.key[lang]); else setError(true)
+    }
   }
   async function pick(id: string) {
-    try { setAdv(await api.advice(id, lang)) } catch { setError(true) }
+    try { setAdv(await api.advice(id, lang)) } catch {
+      const b = await import('./offline').then((m) => m.getBundle()).catch(() => null)
+      if (b) setAdv(b.advice[lang][id]); else setError(true)
+    }
   }
 
   return (

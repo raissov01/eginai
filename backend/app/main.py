@@ -14,6 +14,7 @@
   GET  /api/weather   — бүрку терезелері + аурулардың ауа райы тәуекелі (Open-Meteo)
   /api/bot/*          — бот үшін ішкі API (ескерту, тарих), X-Bot-Key
   GET  /api/open/cases(.csv) — ашық деректер: апта × 0,5° ұяшық × ауру
+  GET  /api/offline/bundle, /api/offline/model.onnx — интернетсіз режим (браузерде ONNX)
   GET  /api/health
 """
 from __future__ import annotations
@@ -160,6 +161,25 @@ def create_app() -> FastAPI:
         import json
         m = json.loads(f.read_text(encoding="utf-8"))
         return {k: m[k] for k in ("accuracy", "macro_f1", "n_test", "cpu_ms_per_image_median", "labels")}
+
+    @app.get("/api/offline/bundle")
+    def offline_bundle():
+        """Интернетсіз режимге бәрі бір файлда: кластар, CAM салмақтары, кеңестер, анықтағыш."""
+        p: Predictor = state["predictor"]
+        return {
+            "version": f"{(MODEL_DIR / 'eginai.onnx').stat().st_mtime_ns}",
+            "labels": p.labels,
+            "classifier_w": p.w.round(5).tolist(),
+            "thresholds": {"min_conf": p.min_conf, "min_plant": p.min_plant, "min_texture": p.min_texture},
+            "names": {lg: {c: advice.name(c, lg) for c in p.labels} for lg in ("kk", "ru")},
+            "advice": {lg: {c: advice.advise(c, lg) for c in p.labels} for lg in ("kk", "ru")},
+            "key": {lg: advice.symptom_key(lg) for lg in ("kk", "ru")},
+        }
+
+    @app.get("/api/offline/model.onnx")
+    def offline_model():
+        return FileResponse(MODEL_DIR / "eginai.onnx", media_type="application/octet-stream",
+                            headers={"Cache-Control": "public, max-age=86400"})
 
     @app.get("/api/classes")
     def classes(lang: Lang = "kk"):
