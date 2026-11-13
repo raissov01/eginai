@@ -137,3 +137,13 @@ def test_weather_endpoint_upstream_down(client, monkeypatch):
 @pytest.mark.parametrize("q", ["lat=91&lon=0", "lat=0&lon=200", "lat=abc&lon=1", "lon=1"])
 def test_weather_endpoint_validates_coords(client, q):
     assert client.get(f"/api/weather?{q}").status_code == 422
+
+
+def test_current_conditions_pick_the_current_hour():
+    h = hours(48)
+    setv(h, "temperature_2m", [5], 11.5)
+    setv(h, "wind_speed_10m", [5], 6.2)
+    c = w.current(h, now=T0 + timedelta(hours=5, minutes=40))
+    assert c == {"time": "2026-06-10T05:00", "temperature_2m": 11.5, "relative_humidity_2m": 60.0,
+                 "precipitation": 0.0, "wind_speed_10m": 6.2}
+    assert w.current(h, now=T0 + timedelta(days=30)) is None

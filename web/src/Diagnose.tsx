@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, ApiError, shrink, type Prediction } from './api'
-import { Feedback, SymptomKey, ThresholdCalc, WeatherPanel } from './Extras'
+import { Feedback, Share, SymptomKey, ThresholdCalc, WeatherPanel } from './Extras'
 import * as H from './history'
 import type { Lang, Texts } from './i18n'
 
@@ -195,6 +195,7 @@ function Result({ lang, t, preview, res, onNew, onAdd, nFiles }: {
         </div>
       )}
 
+      {a && <Share t={t} name={top.name} prob={top.prob} preview={preview} />}
       {a && a.severity !== 'none' && <WeatherPanel lang={lang} t={t} focus={top.id} />}
       {a && !res.unsure && <Feedback t={t} predicted={top.id} confidence={top.prob} options={classes} />}
       {a && !res.unsure && <MapConsent t={t} disease={top.id} confidence={top.prob} />}

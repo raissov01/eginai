@@ -175,9 +175,18 @@ def disease_risk(h: dict, lang: str = "ru") -> list[dict]:
     return sorted(out, key=lambda r: (order[r["level"]], -r["score"]))
 
 
+def current(h: dict, now: datetime) -> dict | None:
+    """Ағымдағы сағаттың ауа райы (бүрку журналына автоматты жазу үшін)."""
+    key = now.replace(minute=0, second=0, microsecond=0).isoformat(timespec="minutes")
+    if key not in h["time"]:
+        return None
+    i = h["time"].index(key)
+    return {"time": key, **{v: h[v][i] for v in VARS}}
+
+
 def report(lat: float, lon: float, lang: str) -> dict:
     h = fetch_hourly(lat, lon)
     now = now_local(h.get("utc_offset_seconds", 0))
     return {"source": SOURCE, "updated": now.isoformat(timespec="minutes"),
-            "in_season": in_season(h), "spray_windows": spray_windows(h, now),
+            "current": current(h, now), "in_season": in_season(h), "spray_windows": spray_windows(h, now),
             "risk": disease_risk(h, lang)}

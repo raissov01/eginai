@@ -26,6 +26,7 @@ export type Feature = {
 }
 export type Weather = {
   source: string; updated: string; in_season: boolean
+  current: { temperature_2m: number; relative_humidity_2m: number; wind_speed_10m: number; precipitation: number } | null
   spray_windows: { start: string; end: string; hours: number; wind_max: number; t_min: number; t_max: number }[]
   risk: { id: string; name: string; level: 'high' | 'moderate' | 'low'; score: number; reason: string }[]
 }

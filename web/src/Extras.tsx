@@ -1,6 +1,7 @@
 // Диагноздан кейінгі қосымша құралдар: кері байланыс, шек есептегіші, ауа райы, белгілер анықтағышы.
 import { useState } from 'react'
 import { api, type Advice, type KeyGroup, type Weather } from './api'
+import { economics } from './calc'
 import type { Lang, Texts } from './i18n'
 
 export function Feedback({ t, predicted, confidence, options }: {
@@ -63,7 +64,69 @@ export function ThresholdCalc({ t, range }: { t: Texts; range: [number, number] 
           {verdict === 'above' ? t.thrAbove : verdict === 'near' ? t.thrNear : t.thrBelow}
         </p>
       )}
+      <Economics t={t} />
     </details>
+  )
+}
+
+const ECO_KEY = 'eginai.eco.v1'
+
+function Economics({ t }: { t: Texts }) {
+  const [v, setV] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem(ECO_KEY) || '{}') } catch { return {} }
+  })
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const n = { ...v, [k]: e.target.value }
+    setV(n)
+    try { localStorage.setItem(ECO_KEY, JSON.stringify(n)) } catch { /* жеке режим */ }
+  }
+  const num = (k: string) => Number((v[k] || '').replace(',', '.').replace(/\s/g, ''))
+  const [y, p, c, l] = [num('y'), num('p'), num('c'), num('l')]
+  const ok = y > 0 && p > 0 && c >= 0 && l >= 0 && l <= 100 && v.c && v.l
+  const r = ok ? economics(y, p, c, l) : null
+  return (
+    <div className="eco">
+      <h3>{t.ecoTitle}</h3>
+      <div className="row">
+        <label className="field grow"><span>{t.ecoYield}</span><input inputMode="decimal" value={v.y || ''} onChange={set('y')} /></label>
+        <label className="field grow"><span>{t.ecoPrice}</span><input inputMode="numeric" value={v.p || ''} onChange={set('p')} /></label>
+      </div>
+      <div className="row">
+        <label className="field grow"><span>{t.ecoCost}</span><input inputMode="numeric" value={v.c || ''} onChange={set('c')} /></label>
+        <label className="field grow"><span>{t.ecoLoss}</span><input inputMode="decimal" value={v.l || ''} onChange={set('l')} /></label>
+      </div>
+      <p className="fine">{t.ecoLossHint}</p>
+      {r && (
+        <p className={`notice ${r.worth ? 'ok' : 'warn'}`} role="status">
+          {t.ecoResult(r.loss, c)}<br /><strong>{r.worth ? t.ecoYes : t.ecoNo}</strong>
+          {r.breakEven != null && <><br />{t.ecoBreakEven(r.breakEven)}</>}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export function Share({ t, name, prob, preview }: { t: Texts; name: string; prob: number; preview: string }) {
+  const [copied, setCopied] = useState(false)
+  async function go() {
+    const field = (() => { try { return JSON.parse(localStorage.getItem('eginai.history.v1') || '[]')[0]?.field ?? '' } catch { return '' } })()
+    const text = t.shareText(name, Math.round(prob * 100), field, new Date().toLocaleDateString('ru-RU')) + `\n${location.origin}`
+    try {
+      const blob = await (await fetch(preview)).blob()
+      const file = new File([blob], 'eginai.jpg', { type: 'image/jpeg' })
+      const data: ShareData = navigator.canShare?.({ files: [file] }) ? { text, files: [file] } : { text }
+      if (navigator.share) { await navigator.share(data); return }
+    } catch (e) {
+      if ((e as DOMException)?.name === 'AbortError') return
+    }
+    try { await navigator.clipboard.writeText(text); setCopied(true) } catch { /* көшіру мүмкін емес */ }
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(location.origin)}&text=${encodeURIComponent(text)}`, '_blank', 'noopener')
+  }
+  return (
+    <div className="share">
+      <button className="btn-secondary" onClick={go}>{t.shareBtn}</button>
+      {copied && <p className="fine" role="status">{t.shareCopied}</p>}
+    </div>
   )
 }
 

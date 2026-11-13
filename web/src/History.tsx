@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import * as H from './history'
+import SprayLog from './Spray'
 import type { Lang, Texts } from './i18n'
 
 export default function History({ lang, t }: { lang: Lang; t: Texts }) {
@@ -66,6 +67,8 @@ export default function History({ lang, t }: { lang: Lang; t: Texts }) {
       {items.length > 0 && (
         <button className="btn-link no-print" onClick={() => { if (confirm(t.hClearAsk)) { H.clear(); refresh() } }}>{t.hClear}</button>
       )}
+      <datalist id="fields">{H.fields(items).map((f) => <option key={f} value={f} />)}</datalist>
+      <SprayLog t={t} lang={lang} />
       <p className="fine">{t.hPrivacy}</p>
     </section>
   )

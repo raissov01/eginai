@@ -185,3 +185,7 @@ main { flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: 20px 16p
   .top, .tabs, .no-print { display: none !important; }
   .hist li { break-inside: avoid; }
 }
+
+.eco { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; }
+.share { margin: 16px 0 0; }
+.spray { margin-top: 28px; }
