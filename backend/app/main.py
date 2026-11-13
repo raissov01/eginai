@@ -12,6 +12,7 @@
   GET  /api/advice/{id} — бір ауру бойынша кеңес (анықтағыштан)
   GET  /api/symptom-key — офлайн белгілер анықтағышы
   GET  /api/weather   — бүрку терезелері + аурулардың ауа райы тәуекелі (Open-Meteo)
+  /api/bot/*          — бот үшін ішкі API (ескерту, тарих), X-Bot-Key
   GET  /api/health
 """
 from __future__ import annotations
@@ -33,7 +34,7 @@ from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 
-from . import advice, weather
+from . import advice, bot_api, weather
 from .db import Case, Feedback, init_db, make_session_factory
 from .inference import MAX_BYTES, ImageError, Predictor
 
@@ -298,6 +299,8 @@ def create_app() -> FastAPI:
         except SQLAlchemyError:
             raise err("db_down", lang, 503) from None
         return [{"id": d, "name": advice.name(d, lang), "count": n} for d, n in rows]
+
+    app.include_router(bot_api.make_router(state))
 
     # Веб-қосымша (жиналған болса)
     if (WEB_DIST / "index.html").exists():

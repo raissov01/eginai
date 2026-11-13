@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import About from './About'
 import Diagnose from './Diagnose'
+import History from './History'
 import MapView from './MapView'
 import { T, type Lang } from './i18n'
 
-type Tab = 'diagnose' | 'map' | 'about'
-const TABS: Tab[] = ['diagnose', 'map', 'about']
+type Tab = 'diagnose' | 'history' | 'map' | 'about'
+const TABS: Tab[] = ['diagnose', 'history', 'map', 'about']
 
 function readTab(): Tab {
   const h = location.hash.slice(1) as Tab
@@ -31,7 +32,7 @@ export default function App() {
     try { localStorage.setItem('lang', lang) } catch { /* жеке режим */ }
   }, [lang])
 
-  const label = { diagnose: t.tabDiagnose, map: t.tabMap, about: t.tabAbout }
+  const label = { diagnose: t.tabDiagnose, history: t.tabHistory, map: t.tabMap, about: t.tabAbout }
 
   return (
     <div className="app">
@@ -49,6 +50,7 @@ export default function App() {
 
       <main>
         {tab === 'diagnose' && <Diagnose lang={lang} t={t} />}
+        {tab === 'history' && <History lang={lang} t={t} />}
         {tab === 'map' && <MapView lang={lang} t={t} />}
         {tab === 'about' && <About lang={lang} />}
       </main>

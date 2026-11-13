@@ -38,3 +38,19 @@ def test_healthy_skips_chemical():
     healthy = dict(ADVICE, severity="none", timing="—")
     _, adv = format_result(res(advice=healthy), "kk")
     assert "Химиялық" not in adv
+
+
+def test_alert_message_escapes_and_truncates():
+    from bot.texts import format_alert
+    cases = [{"name": "Тат <b>", "distance_km": 3.2, "date": "2026-06-10"}] * 12
+    msg = format_alert({"lang": "kk", "radius_km": 30.0, "cases": cases})
+    assert "30 км" in msg and "&lt;b&gt;" in msg and "+2" in msg
+    assert msg.count("3.2 км") == 10
+
+
+def test_history_message():
+    from bot.texts import format_history
+    assert "бос" in format_history([], "kk")
+    rows = [{"date": "2026-06-10T08:00", "field": "Алқап <3>", "name": "Қоңыр тат", "confidence": 0.91}]
+    msg = format_history(rows, "kk")
+    assert "2026-06-10 · Алқап &lt;3&gt; — Қоңыр тат (91%)" in msg

@@ -43,6 +43,34 @@ class Feedback(Base):
     source: Mapped[str] = mapped_column(String(10))
 
 
+class Subscription(Base):
+    """Боттағы «ауданымдағы ошақ туралы ескерт» жазылымы. /stop_alerts толық өшіреді."""
+    __tablename__ = "subscriptions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    chat_id: Mapped[str] = mapped_column(String(32), unique=True)
+    lat: Mapped[float] = mapped_column(Float)          # ~1 км-ге дөңгелектенген
+    lon: Mapped[float] = mapped_column(Float)
+    radius_km: Mapped[float] = mapped_column(Float)
+    lang: Mapped[str] = mapped_column(String(2))
+    last_case_id: Mapped[int] = mapped_column(Integer, default=0)  # осыдан кейінгі ошақтар хабарланады
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
+                                                 default=lambda: datetime.now(timezone.utc))
+
+
+class BotDiagnosis(Base):
+    """Бот диагноздарының тарихы (фотосыз): алқап бойынша қарау және CSV экспорт."""
+    __tablename__ = "bot_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
+                                                 default=lambda: datetime.now(timezone.utc))
+    chat_id: Mapped[str] = mapped_column(String(32), index=True)
+    disease: Mapped[str] = mapped_column(String(40))
+    confidence: Mapped[float] = mapped_column(Float)
+    field: Mapped[str | None] = mapped_column(String(60), nullable=True)
+
+
 def database_url() -> str:
     return os.environ.get("DATABASE_URL", "postgresql+psycopg://eginai:eginai@localhost:5432/eginai")
 

@@ -26,6 +26,23 @@ T = {
         "error": "Сервер уақытша жауап бермей тұр. Біраздан соң қайталаңыз.",
         "ask_hint": "Сұрағыңызды жазыңыз немесе жаңа фото жіберіңіз.",
         "sev": {"high": "Қауіпті", "medium": "Орташа қауіп", "none": "Сау"},
+        "alerts_intro": ("<b>Ауданыңыздағы ауру туралы ескерту</b>\n"
+                         "Басқа фермерлер жақын жерде ауру ошағын картаға белгілесе, хабарлаймын. "
+                         "Орныңыз ~1 км-ге дейін дөңгелектеніп сақталады, /stop_alerts толық өшіреді.\n\n"
+                         "Радиусты таңдаңыз:"),
+        "alerts_loc": "Енді алқаптың орнын жіберіңіз (төмендегі батырма).",
+        "alerts_on": "Жазылдыңыз: {r} км радиуста жаңа ошақ пайда болса, хабарлаймын. Өшіру: /stop_alerts",
+        "alerts_off": "Ескертулер өшірілді, орныңыз жойылды.",
+        "alert": "<b>Жақын жерде ауру ошағы</b> ({r} км радиуста):",
+        "alert_line": "• {name} — {km} км, {date}",
+        "alert_tip": "Егісті тексеріп, күдікті жапырақты суретке түсіріп жіберіңіз.",
+        "field_set": "Алқап: <b>{f}</b>. Келесі диагноздар осы алқапқа жазылады.",
+        "field_off": "Алқап таңдалмаған. Мысалы: <code>/field Солтүстік-3</code>",
+        "field_now": "Қазіргі алқап: <b>{f}</b>",
+        "history_empty": "Тарих бос. Фото жіберіп, диагноз алыңыз (алқап: /field атауы).",
+        "history_head": "<b>Соңғы диагноздар</b>",
+        "history_file": "Толық тарих (Excel-де ашылады).",
+        "history_cleared": "Тарих жойылды.",
     },
     "ru": {
         "start": ("Здравствуйте! Я <b>EginAI</b> — определяю болезни пшеницы по фото.\n\n"
@@ -49,6 +66,23 @@ T = {
         "error": "Сервер временно не отвечает. Повторите чуть позже.",
         "ask_hint": "Напишите вопрос или отправьте новое фото.",
         "sev": {"high": "Опасно", "medium": "Умеренный риск", "none": "Здоровое"},
+        "alerts_intro": ("<b>Оповещение о болезнях рядом</b>\n"
+                         "Если другие фермеры отметят очаг болезни недалеко от вас, я сообщу. "
+                         "Место хранится с округлением до ~1 км, /stop_alerts удаляет всё.\n\n"
+                         "Выберите радиус:"),
+        "alerts_loc": "Теперь отправьте место поля (кнопка ниже).",
+        "alerts_on": "Подписка оформлена: сообщу о новых очагах в радиусе {r} км. Отключить: /stop_alerts",
+        "alerts_off": "Оповещения отключены, место удалено.",
+        "alert": "<b>Очаг болезни рядом</b> (в радиусе {r} км):",
+        "alert_line": "• {name} — {km} км, {date}",
+        "alert_tip": "Осмотрите посевы и пришлите фото подозрительного листа.",
+        "field_set": "Поле: <b>{f}</b>. Следующие диагнозы запишутся на это поле.",
+        "field_off": "Поле не выбрано. Например: <code>/field Северное-3</code>",
+        "field_now": "Текущее поле: <b>{f}</b>",
+        "history_empty": "История пуста. Отправьте фото и получите диагноз (поле: /field название).",
+        "history_head": "<b>Последние диагнозы</b>",
+        "history_file": "Полная история (открывается в Excel).",
+        "history_cleared": "История удалена.",
     },
 }
 
@@ -76,3 +110,26 @@ def format_result(res: dict, lang: str) -> tuple[str, str | None]:
             adv += f"\n\n<b>{t['timing']}</b>\n{escape(a['timing'])}"
     adv += f"\n\n<i>{t['disclaimer']}</i>"
     return main, adv
+
+
+def format_alert(a: dict) -> str:
+    """POST /api/bot/alerts/poll жазбасы → бір хабарлама (ең көбі 10 ошақ)."""
+    t = T[a["lang"]]
+    lines = [t["alert"].format(r=round(a["radius_km"]))]
+    for c in a["cases"][:10]:
+        lines.append(t["alert_line"].format(name=escape(c["name"]), km=c["distance_km"], date=c["date"]))
+    if len(a["cases"]) > 10:
+        lines.append(f"… +{len(a['cases']) - 10}")
+    lines.append("\n" + t["alert_tip"])
+    return "\n".join(lines)
+
+
+def format_history(rows: list[dict], lang: str, limit: int = 10) -> str:
+    t = T[lang]
+    if not rows:
+        return t["history_empty"]
+    out = [t["history_head"]]
+    for r in rows[:limit]:
+        field = f" · {escape(r['field'])}" if r.get("field") else ""
+        out.append(f"{r['date'][:10]}{field} — {escape(r['name'])} ({round(r['confidence'] * 100)}%)")
+    return "\n".join(out)

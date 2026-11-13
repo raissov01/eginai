@@ -170,3 +170,18 @@ main { flex: 1; width: 100%; max-width: 680px; margin: 0 auto; padding: 20px 16p
 .options button { width: 100%; text-align: left; padding: 12px 14px; min-height: 48px; background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; }
 .options button:hover { background: var(--field); }
 .key summary { cursor: pointer; min-height: 32px; }
+
+/* Тарих */
+.grow { flex: 1; }
+.fieldtag { margin: 0 0 12px; }
+.hist { list-style: none; margin: 12px 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); }
+.hist li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; }
+.hist li + li { border-top: 1px solid var(--line); }
+.hist img, .hist .ph { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; flex: none; background: var(--field); border: 1px solid var(--line); }
+.hist .body { flex: 1; min-width: 0; }
+.icon { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-size: 1.3rem; cursor: pointer; }
+.btn-link { background: none; border: 0; color: var(--rust); text-decoration: underline; padding: 12px 0; font: inherit; cursor: pointer; }
+@media print {
+  .top, .tabs, .no-print { display: none !important; }
+  .hist li { break-inside: avoid; }
+}

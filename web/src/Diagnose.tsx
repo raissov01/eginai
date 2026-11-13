@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api, ApiError, shrink, type Prediction } from './api'
 import { Feedback, SymptomKey, ThresholdCalc, WeatherPanel } from './Extras'
+import * as H from './history'
 import type { Lang, Texts } from './i18n'
 
 type Props = { lang: Lang; t: Texts }
@@ -137,6 +138,7 @@ function Result({ lang, t, preview, res, onNew, onAdd, nFiles }: {
       )}
 
       {res.n_images > 1 && <p className="fine">{t.photosUsed(res.n_used, res.n_images)}</p>}
+      {res.reason !== 'not_plant' && <FieldTag t={t} res={res} preview={preview} />}
       {onAdd && res.reason !== 'not_plant' && (
         <div className="addphoto">
           <button className="btn-secondary" onClick={onAdd}>{t.addPhoto(nFiles + 1)}</button>
@@ -200,6 +202,38 @@ function Result({ lang, t, preview, res, onNew, onAdd, nFiles }: {
 
       <button className="btn-secondary wide" onClick={onNew}>{t.newPhoto}</button>
     </section>
+  )
+}
+
+// Әр диагноз тарихқа автоматты жазылады (тек браузерде); алқап атауын қосуға болады
+function FieldTag({ t, res, preview }: { t: Texts; res: Prediction; preview: string }) {
+  const [id, setId] = useState<string | null>(null)
+  const [field, setField] = useState(() => H.load()[0]?.field ?? '')
+  const [saved, setSaved] = useState(false)
+  const done = useRef<Prediction | null>(null)
+  useEffect(() => {
+    if (done.current === res) return   // бір нәтиже — бір жазба (StrictMode/қайта рендер)
+    done.current = res
+    const top = res.top[0]
+    H.thumb(preview).then((th) => {
+      const e = H.add({ field, disease: top.id, name: top.name, prob: top.prob, unsure: res.unsure, thumb: th })
+      setId(e.id)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [res])
+  return (
+    <form className="fieldtag" onSubmit={(e) => { e.preventDefault(); if (id) { H.update(id, { field: field.trim() }); setSaved(true) } }}>
+      <label className="field">
+        <span>{t.fieldLabel}</span>
+        <span className="ask-row">
+          <input value={field} maxLength={60} placeholder={t.fieldPh} list="fields"
+            onChange={(e) => { setField(e.target.value); setSaved(false) }} />
+          <button className="btn-secondary" disabled={!id}>{t.fieldSave}</button>
+        </span>
+      </label>
+      <datalist id="fields">{H.fields().map((f) => <option key={f} value={f} />)}</datalist>
+      {saved && <p className="fine" role="status">{t.fieldSaved}</p>}
+    </form>
   )
 }
 

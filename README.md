@@ -22,6 +22,8 @@ docker compose up --build
 - 8000 порты бос болмаса: `APP_PORT=8080 docker compose up --build`
 - Сынақ фотолары: `samples/` (әр класқа бір-екі сурет)
 - Telegram-бот (міндетті емес): `cp .env.example .env`, `BOT_TOKEN` жазып, `docker compose --profile bot up --build`
+  - ескерту мен тарих үшін `.env`-ке `BOT_API_KEY` қойыңыз (`openssl rand -hex 24`). Бот командалары: `/alerts` (радиус ішінде жаңа ошақ туралы хабарлау), `/stop_alerts`, `/field <алқап>`, `/history` (соңғы диагноздар + CSV), `/clear_history`
+  - веб-қосымшада «Тарих» қойындысы бар: диагноздар тек браузерде сақталады, CSV/PDF/JSON экспорты бар
 - ИИ-жауаптар (міндетті емес): `.env` ішінде `ANTHROPIC_API_KEY`. Кілтсіз сұрақтарға білім базасы жауап береді.
 
 Модель (`backend/app/model/eginai.onnx`) репозиторийде бар, қайта үйрету қажет емес.

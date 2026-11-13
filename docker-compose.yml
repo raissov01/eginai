@@ -19,6 +19,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://eginai:${POSTGRES_PASSWORD:-eginai}@db:5432/eginai
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      BOT_API_KEY: ${BOT_API_KEY:-}
     ports: ["${APP_PORT:-8000}:8000"]
     depends_on:
       db: { condition: service_healthy }
@@ -31,6 +32,7 @@ services:
       BOT_TOKEN: ${BOT_TOKEN:-}
       API_URL: http://api:8000
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8000}
+      BOT_API_KEY: ${BOT_API_KEY:-}
     depends_on: [api]
     restart: on-failure
 
