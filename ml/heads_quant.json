@@ -1,0 +1,48 @@
+{
+ "size_mb": {
+  "fp32": 76.0,
+  "int8": 34.4
+ },
+ "rows": [
+  {
+   "model": "fp32",
+   "scale": 1.0,
+   "ap50": 0.9195,
+   "mae": 2.18,
+   "rmse": 2.93,
+   "mean_rel_err_pct": 6.12,
+   "total_bias_pct": 0.92,
+   "cpu_ms_median": 2259
+  },
+  {
+   "model": "fp32",
+   "scale": 0.35,
+   "ap50": 0.9123,
+   "mae": 2.25,
+   "rmse": 3.01,
+   "mean_rel_err_pct": 6.39,
+   "total_bias_pct": -0.31,
+   "cpu_ms_median": 1969
+  },
+  {
+   "model": "int8",
+   "scale": 1.0,
+   "ap50": 0.9193,
+   "mae": 2.2,
+   "rmse": 2.96,
+   "mean_rel_err_pct": 6.2,
+   "total_bias_pct": 0.96,
+   "cpu_ms_median": 2816
+  },
+  {
+   "model": "int8",
+   "scale": 0.35,
+   "ap50": 0.9125,
+   "mae": 2.25,
+   "rmse": 3.0,
+   "mean_rel_err_pct": 6.38,
+   "total_bias_pct": -0.35,
+   "cpu_ms_median": 1481
+  }
+ ]
+}
