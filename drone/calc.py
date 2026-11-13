@@ -10,6 +10,13 @@
 * Өнімділік: Y (г/м²) = масақ/м² × дән/масақ × МДМ/1000; 1 г/м² = 0,1 ц/га.
 * Шығын = ошақ ауданы × өнімділік × шығын үлесі.
 * Нүктелік шашырату = ошақ ауданы × (1 + буфер).
+
+Биіктіктер өлшеммен таңдалған (2026-11-14):
+* Масақ санау: детектор (GWHD-да үйретілген, ml/heads_metrics.json) GSD ≤ ~0,1 см/пиксельде
+  қатесі ~6–8 %, 0,16 см-де 18 %, 0,24 см-де 43 %. Біздің камерамен бұл ≤ ~3–4 м биіктік,
+  сондықтан 25 м-ден масақ саналмайды: ошақтарда дрон нүктелерде 3 м-ге түсіп түсіреді (іріктеме).
+* Жапырақ ауруы: классификаторға зақым аймағы кадрда ~200 px керек (ml/cls_resolution.json),
+  бұл дрон камерасының мүмкіндігінен тыс — диагнозды агроном GPS нүктесінде телефонмен қояды.
 """
 from __future__ import annotations
 
@@ -38,6 +45,17 @@ def flight_plan(area_ha: float, altitude_m: float, side_overlap: float = 0.7,
             "flights": math.ceil(hours * 60 / battery_min)}
 
 
+HEAD_ALT_M = 3.0        # масақ санау биіктігі (GSD ≈ 0,085 см/пиксель)
+SAMPLES_PER_HA = 2      # ошақтағы іріктеме нүктелері, га сайын
+SEC_PER_SAMPLE = 25     # түсу + ілініп тұру + түсіру + көтерілу + келесі нүктеге ұшу
+
+
+def sampling_plan(area_ha: float) -> dict:
+    """Ошақтарда масақ санау: толық жабу емес, нүктелік іріктеме (3 м биіктік)."""
+    n = math.ceil(area_ha * SAMPLES_PER_HA)
+    return {"samples": n, "hours": n * SEC_PER_SAMPLE / 3600, "gsd_cm": coverage(HEAD_ALT_M)["gsd_cm"]}
+
+
 def yield_cph(heads_m2: float, grains_per_head: float, tkw_g: float) -> float:
     """Өнімділік, ц/га."""
     return heads_m2 * grains_per_head * tkw_g / 1000 * 0.1
@@ -62,7 +80,7 @@ def report(s: FieldScenario) -> dict:
     loss_t = hot * y / 10 * s.loss_share
     spray = hot * (1 + s.buffer)
     survey = flight_plan(s.area_ha, 100)
-    detail = flight_plan(hot, 25) if hot else {"hours": 0.0, "flights": 0}
+    detail = sampling_plan(hot)
     return {
         "yield_cph": y, "harvest_t": s.area_ha * y / 10, "hotspot_ha": hot,
         "loss_t": loss_t, "loss_tg": loss_t * s.price_tg_t,
@@ -71,7 +89,7 @@ def report(s: FieldScenario) -> dict:
         "saving_tg": (s.area_ha - spray) * s.fungicide_tg_ha,
         "saving_pct": (s.area_ha - spray) / s.area_ha * 100,
         "survey_hours": survey["hours"], "survey_flights": survey["flights"], "survey_gsd_cm": survey["gsd_cm"],
-        "detail_hours": detail["hours"], "detail_gsd_cm": coverage(25)["gsd_cm"],
+        "detail_hours": detail["hours"], "detail_samples": detail["samples"], "detail_gsd_cm": detail["gsd_cm"],
     }
 
 

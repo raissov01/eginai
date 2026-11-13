@@ -75,7 +75,7 @@ def main() -> None:
     tr = datasets.ImageFolder(args.data / "train", train_tf())
     va = datasets.ImageFolder(args.data / "val", eval_tf())
     assert tr.classes == va.classes, "train/val класстары сәйкес емес"
-    tl = DataLoader(tr, args.bs, sampler=balanced_sampler(tr), num_workers=6, pin_memory=True,
+    tl = DataLoader(tr, args.bs, sampler=balanced_sampler(tr), num_workers=4, pin_memory=True,
                     drop_last=True, persistent_workers=True)
     vl = DataLoader(va, 64, num_workers=4)
 

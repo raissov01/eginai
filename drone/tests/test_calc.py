@@ -34,3 +34,10 @@ def test_report_500ha_example():
 def test_no_disease_means_no_loss_and_full_saving():
     r = report(FieldScenario(hotspot_share=0.0))
     assert r["loss_t"] == 0 and r["spray_ha"] == 0 and r["saving_pct"] == 100
+
+
+def test_head_counting_altitude_is_within_measured_limit():
+    # ml/heads_metrics.json: санау қатесі ≤ 8 % тек GSD ≤ ~0.1 см/px болғанда
+    r = report(FieldScenario())
+    assert r["detail_gsd_cm"] <= 0.1
+    assert r["detail_samples"] == 60 and 0.3 < r["detail_hours"] < 0.5   # 30 га × 2 нүкте × 25 с

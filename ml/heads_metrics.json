@@ -1,0 +1,102 @@
+{
+ "n_test_images": 353,
+ "n_test_heads": 15049,
+ "score_threshold": 0.3,
+ "native_gsd_mm_est": 0.19,
+ "head_width_cm_assumed": 1.2,
+ "median_head_short_side_px": 63.0,
+ "camera_gsd_cm_per_m_altitude": 0.0284,
+ "curve": [
+  {
+   "scale": 1.0,
+   "gsd_cm": 0.019,
+   "altitude_m": 0.7,
+   "head_px": 63.0,
+   "ap50": 0.9195,
+   "ap75": 0.4728,
+   "mae": 2.18,
+   "rmse": 2.93,
+   "mean_rel_err_pct": 6.12,
+   "total_bias_pct": 0.92,
+   "cpu_ms_median": 689.0
+  },
+  {
+   "scale": 0.5,
+   "gsd_cm": 0.038,
+   "altitude_m": 1.3,
+   "head_px": 31.5,
+   "ap50": 0.9174,
+   "ap75": 0.4727,
+   "mae": 2.15,
+   "rmse": 2.87,
+   "mean_rel_err_pct": 6.32,
+   "total_bias_pct": -0.15,
+   "cpu_ms_median": 664.0
+  },
+  {
+   "scale": 0.35,
+   "gsd_cm": 0.054,
+   "altitude_m": 1.9,
+   "head_px": 22.0,
+   "ap50": 0.9123,
+   "ap75": 0.4667,
+   "mae": 2.25,
+   "rmse": 3.01,
+   "mean_rel_err_pct": 6.39,
+   "total_bias_pct": -0.31,
+   "cpu_ms_median": 668.0
+  },
+  {
+   "scale": 0.25,
+   "gsd_cm": 0.076,
+   "altitude_m": 2.7,
+   "head_px": 15.8,
+   "ap50": 0.9006,
+   "ap75": 0.4512,
+   "mae": 2.44,
+   "rmse": 3.26,
+   "mean_rel_err_pct": 6.64,
+   "total_bias_pct": -0.6,
+   "cpu_ms_median": 666.0
+  },
+  {
+   "scale": 0.18,
+   "gsd_cm": 0.106,
+   "altitude_m": 3.7,
+   "head_px": 11.3,
+   "ap50": 0.8739,
+   "ap75": 0.4187,
+   "mae": 2.94,
+   "rmse": 3.93,
+   "mean_rel_err_pct": 8.22,
+   "total_bias_pct": -0.66,
+   "cpu_ms_median": 671.0
+  },
+  {
+   "scale": 0.12,
+   "gsd_cm": 0.159,
+   "altitude_m": 5.6,
+   "head_px": 7.6,
+   "ap50": 0.7965,
+   "ap75": 0.3448,
+   "mae": 5.74,
+   "rmse": 7.56,
+   "mean_rel_err_pct": 17.9,
+   "total_bias_pct": 7.58,
+   "cpu_ms_median": 678.0
+  },
+  {
+   "scale": 0.08,
+   "gsd_cm": 0.238,
+   "altitude_m": 8.4,
+   "head_px": 5.0,
+   "ap50": 0.5978,
+   "ap75": 0.2082,
+   "mae": 12.51,
+   "rmse": 16.95,
+   "mean_rel_err_pct": 42.57,
+   "total_bias_pct": 17.2,
+   "cpu_ms_median": 672.0
+  }
+ ]
+}

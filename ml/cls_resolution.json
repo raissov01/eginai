@@ -1,0 +1,47 @@
+{
+ "n_test": 580,
+ "rows": [
+  {
+   "lesion_px": "orig",
+   "accuracy": 0.9707,
+   "unsure_share": 0.0224,
+   "accuracy_confident": 0.9841
+  },
+  {
+   "lesion_px": 224,
+   "accuracy": 0.969,
+   "unsure_share": 0.0448,
+   "accuracy_confident": 0.9838
+  },
+  {
+   "lesion_px": 112,
+   "accuracy": 0.7948,
+   "unsure_share": 0.2086,
+   "accuracy_confident": 0.8802
+  },
+  {
+   "lesion_px": 56,
+   "accuracy": 0.4741,
+   "unsure_share": 0.269,
+   "accuracy_confident": 0.5377
+  },
+  {
+   "lesion_px": 28,
+   "accuracy": 0.2431,
+   "unsure_share": 0.1397,
+   "accuracy_confident": 0.2485
+  },
+  {
+   "lesion_px": 14,
+   "accuracy": 0.1931,
+   "unsure_share": 0.0534,
+   "accuracy_confident": 0.1985
+  },
+  {
+   "lesion_px": 7,
+   "accuracy": 0.1845,
+   "unsure_share": 0.0586,
+   "accuracy_confident": 0.1923
+  }
+ ]
+}
