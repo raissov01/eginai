@@ -25,7 +25,7 @@ from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import (BotCommand, BufferedInputFile, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup,
                            KeyboardButton, Message, ReplyKeyboardMarkup, ReplyKeyboardRemove)
 
-from .texts import T, format_alert, format_history, format_result
+from .texts import T, format_alert, format_history, format_reminder, format_result
 
 log = logging.getLogger("eginai.bot")
 API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000")
@@ -98,7 +98,9 @@ async def diagnose(m: Message, file_id: str):
     except httpx.HTTPError as e:
         log.warning("history save failed: %s", e)
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text=t["more"], callback_data="more")]] + (
-        [] if res["unsure"] else [[InlineKeyboardButton(text=t["to_map"], callback_data="map")]]))
+        [] if res["unsure"] else [[InlineKeyboardButton(text=t["to_map"], callback_data="map")]]) + (
+        [[InlineKeyboardButton(text=t["remind_btn"], callback_data="rem:7")]]
+        if BOT_API_KEY and res["advice"]["severity"] != "none" else []))
     if res.get("cam"):
         jpg = base64.b64decode(res["cam"].split(",", 1)[1])
         await m.answer_photo(BufferedInputFile(jpg, "eginai.jpg"), caption=main)
@@ -167,6 +169,24 @@ async def on_location(m: Message):
     except httpx.HTTPError:
         ok = False
     await m.answer(t["added"].format(url=f"{PUBLIC_URL}/#map") if ok else t["error"], reply_markup=ReplyKeyboardRemove())
+
+
+@dp.callback_query(F.data.startswith("rem:"))
+async def set_reminder(c: CallbackQuery):
+    uid = c.from_user.id
+    lang = lang_of(uid)
+    last = LAST.get(uid)
+    if not last:
+        await c.answer(T[lang]["need_diag"], show_alert=True)
+        return
+    try:
+        r = await http.post("/api/bot/reminders", json={
+            "chat_id": str(c.message.chat.id), "disease": last["disease"], "days": int(c.data.split(":")[1]),
+            "field": FIELD.get(uid), "lang": lang})
+        ok = r.status_code == 201
+    except httpx.HTTPError:
+        ok = False
+    await c.answer(T[lang]["remind_set"] if ok else T[lang]["error"], show_alert=not ok)
 
 
 @dp.message(Command("alerts"))
@@ -239,7 +259,7 @@ async def clear_history(m: Message):
 
 
 async def alert_loop(bot: Bot) -> None:
-    """Жаңа ошақтарды 5 мин сайын тексеріп, жазылғандарға жібереді."""
+    """5 мин сайын: жаңа ошақтар → жазылғандарға; мерзімі жеткен «қайта тексеру» еске салғыштары."""
     while True:
         try:
             r = await http.post("/api/bot/alerts/poll")
@@ -249,6 +269,13 @@ async def alert_loop(bot: Bot) -> None:
                     await bot.send_message(int(a["chat_id"]), format_alert(a))
                 except TelegramForbiddenError:  # ботты бұғаттаған — жазылымды өшіреміз
                     await http.delete(f"/api/bot/subscriptions/{a['chat_id']}")
+            r = await http.post("/api/bot/reminders/due")
+            r.raise_for_status()
+            for rem in r.json():
+                try:
+                    await bot.send_message(int(rem["chat_id"]), format_reminder(rem))
+                except TelegramForbiddenError:
+                    pass
         except Exception as e:  # цикл ешқашан тоқтамауы керек
             log.warning("alert poll failed: %s", e)
         await asyncio.sleep(POLL_SECONDS)

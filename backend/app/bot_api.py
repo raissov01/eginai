@@ -16,7 +16,7 @@ import hmac
 import io
 import math
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 from zoneinfo import ZoneInfo
 
@@ -26,7 +26,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import advice
-from .db import BotDiagnosis, Case, Subscription
+from .db import BotDiagnosis, Case, Reminder, Subscription
 
 Lang = Literal["kk", "ru"]
 
@@ -61,6 +61,18 @@ def _local(dt: datetime) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(TZ).isoformat(timespec="minutes")[:16]
+
+
+class ReminderIn(BaseModel):
+    chat_id: str = Field(min_length=1, max_length=32)
+    disease: str
+    days: int = Field(ge=1, le=30)
+    field: str | None = Field(default=None, max_length=60)
+    lang: Lang = "kk"
+
+
+def _utc(dt: datetime) -> datetime:
+    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt.astimezone(timezone.utc)
 
 
 def _safe_cell(v: str) -> str:
@@ -199,6 +211,39 @@ def make_router(state: dict) -> APIRouter:
                     BotDiagnosis.chat_id == chat_id, BotDiagnosis.field.is_not(None)).distinct()).all()]
         except SQLAlchemyError:
             raise db_down() from None
+
+    @r.post("/reminders", status_code=201)
+    def add_reminder(body: ReminderIn, x_bot_key: str | None = Header(None)):
+        check(x_bot_key)
+        if body.disease not in labels():
+            raise HTTPException(422, {"code": "unknown_disease", "message": body.disease})
+        try:
+            with db() as s, s.begin():
+                rem = Reminder(chat_id=body.chat_id, disease=body.disease, lang=body.lang,
+                               field=(body.field or "").strip() or None,
+                               due_at=datetime.now(timezone.utc) + timedelta(days=body.days))
+                s.add(rem)
+                s.flush()
+                return {"id": rem.id, "due_at": rem.due_at.isoformat(timespec="minutes")}
+        except SQLAlchemyError:
+            raise db_down() from None
+
+    @r.post("/reminders/due")
+    def due_reminders(now: datetime | None = None, x_bot_key: str | None = Header(None)):
+        """Мерзімі жеткен еске салғыштар (бір рет қайтарылады). `now` — тек тест үшін."""
+        check(x_bot_key)
+        now = _utc(now) if now else datetime.now(timezone.utc)
+        out = []
+        try:
+            with db() as s, s.begin():
+                for rem in s.scalars(select(Reminder).where(Reminder.sent.is_(False))).all():
+                    if _utc(rem.due_at) <= now:
+                        rem.sent = True
+                        out.append({"chat_id": rem.chat_id, "disease": rem.disease, "field": rem.field,
+                                    "name": advice.name(rem.disease, rem.lang), "lang": rem.lang})
+        except SQLAlchemyError:
+            raise db_down() from None
+        return out
 
     @r.delete("/history/{chat_id}", status_code=204)
     def clear_history(chat_id: str, x_bot_key: str | None = Header(None)):

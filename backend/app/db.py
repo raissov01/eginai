@@ -71,6 +71,19 @@ class BotDiagnosis(Base):
     field: Mapped[str | None] = mapped_column(String(60), nullable=True)
 
 
+class Reminder(Base):
+    """«N күннен кейін алқапты қайта тексеріңіз» — бот диагноздан кейін ұсынады."""
+    __tablename__ = "reminders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    chat_id: Mapped[str] = mapped_column(String(32), index=True)
+    disease: Mapped[str] = mapped_column(String(40))
+    field: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    lang: Mapped[str] = mapped_column(String(2))
+    due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    sent: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+
+
 def database_url() -> str:
     return os.environ.get("DATABASE_URL", "postgresql+psycopg://eginai:eginai@localhost:5432/eginai")
 

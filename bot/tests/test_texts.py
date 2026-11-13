@@ -54,3 +54,10 @@ def test_history_message():
     rows = [{"date": "2026-06-10T08:00", "field": "Алқап <3>", "name": "Қоңыр тат", "confidence": 0.91}]
     msg = format_history(rows, "kk")
     assert "2026-06-10 · Алқап &lt;3&gt; — Қоңыр тат (91%)" in msg
+
+
+def test_reminder_message():
+    from bot.texts import format_reminder
+    m = format_reminder({"lang": "ru", "name": "Бурая <x>", "field": "Поле 1"})
+    assert "Поле 1: " in m and "&lt;x&gt;" in m and "7 дней" in m
+    assert "«Қоңыр тат»" in format_reminder({"lang": "kk", "name": "Қоңыр тат", "field": None})

@@ -43,6 +43,10 @@ T = {
         "history_head": "<b>Соңғы диагноздар</b>",
         "history_file": "Толық тарих (Excel-де ашылады).",
         "history_cleared": "Тарих жойылды.",
+        "remind_btn": "7 күннен кейін қайта тексеруді еске сал",
+        "remind_set": "Жарайды, 7 күннен кейін еске саламын.",
+        "remind": ("<b>Қайта тексеру уақыты</b>\n{field}«{name}» анықталғанына 7 күн өтті. "
+                   "Сол жерді қайта суретке түсіріп жіберіңіз: ауру тоқтады ма, әлде таралды ма, салыстырамыз."),
     },
     "ru": {
         "start": ("Здравствуйте! Я <b>EginAI</b> — определяю болезни пшеницы по фото.\n\n"
@@ -83,6 +87,10 @@ T = {
         "history_head": "<b>Последние диагнозы</b>",
         "history_file": "Полная история (открывается в Excel).",
         "history_cleared": "История удалена.",
+        "remind_btn": "Напомнить перепроверить через 7 дней",
+        "remind_set": "Хорошо, напомню через 7 дней.",
+        "remind": ("<b>Пора перепроверить</b>\n{field}С момента диагноза «{name}» прошло 7 дней. "
+                   "Сфотографируйте то же место ещё раз: сравним, остановилась болезнь или распространилась."),
     },
 }
 
@@ -133,3 +141,9 @@ def format_history(rows: list[dict], lang: str, limit: int = 10) -> str:
         field = f" · {escape(r['field'])}" if r.get("field") else ""
         out.append(f"{r['date'][:10]}{field} — {escape(r['name'])} ({round(r['confidence'] * 100)}%)")
     return "\n".join(out)
+
+
+def format_reminder(r: dict) -> str:
+    t = T[r["lang"]]
+    field = f"{escape(r['field'])}: " if r.get("field") else ""
+    return t["remind"].format(field=field, name=escape(r["name"]))

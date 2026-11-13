@@ -13,11 +13,15 @@
   GET  /api/symptom-key — офлайн белгілер анықтағышы
   GET  /api/weather   — бүрку терезелері + аурулардың ауа райы тәуекелі (Open-Meteo)
   /api/bot/*          — бот үшін ішкі API (ескерту, тарих), X-Bot-Key
+  GET  /api/open/cases(.csv) — ашық деректер: апта × 0,5° ұяшық × ауру
   GET  /api/health
 """
 from __future__ import annotations
 
+import csv
+import io
 import logging
+import math
 import os
 import time
 from collections import defaultdict, deque
@@ -45,6 +49,7 @@ ROOT = Path(__file__).resolve().parent
 MODEL_DIR = Path(os.environ.get("EGINAI_MODEL_DIR", ROOT / "model"))
 WEB_DIST = Path(os.environ.get("EGINAI_WEB_DIST", ROOT.parents[1] / "web" / "dist"))
 Lang = Literal["kk", "ru"]
+CELL = 0.5  # ашық деректер торы, градус (~55 × 35 км): жеке алқапты анықтауға болмайды
 
 ERRORS = {
     "not_image": {"kk": "Бұл сурет емес. JPG, PNG немесе WebP фото жіберіңіз.",
@@ -299,6 +304,38 @@ def create_app() -> FastAPI:
         except SQLAlchemyError:
             raise err("db_down", lang, 503) from None
         return [{"id": d, "name": advice.name(d, lang), "count": n} for d, n in rows]
+
+    def open_rows(days: int, lang: str) -> list[dict]:
+        since = datetime.now(timezone.utc) - timedelta(days=days)
+        try:
+            with state["db"]() as s:
+                rows = s.execute(select(Case.created_at, Case.lat, Case.lon, Case.disease)
+                                 .where(Case.created_at >= since)).all()
+        except SQLAlchemyError:
+            raise err("db_down", lang, 503) from None
+        agg: dict[tuple, int] = defaultdict(int)
+        for ts, lat, lon, d in rows:
+            if advice.disease(d)["severity"] == "none":
+                continue
+            y, w, _ = ts.isocalendar()
+            agg[(f"{y}-W{w:02d}", math.floor(lat / CELL) * CELL, math.floor(lon / CELL) * CELL, d)] += 1
+        return [{"week": k[0], "cell_lat": k[1], "cell_lon": k[2], "disease": k[3],
+                 "name": advice.name(k[3], lang), "count": n} for k, n in sorted(agg.items())]
+
+    @app.get("/api/open/cases")
+    def open_cases(days: int = Query(90, ge=1, le=730), lang: Lang = "kk"):
+        """Ашық деректер: апта × 0,5° тор ұяшығы × ауру. Сау жағдайлар кірмейді."""
+        return {"license": "CC BY 4.0 (EginAI)", "cell_deg": CELL, "days": days, "rows": open_rows(days, lang)}
+
+    @app.get("/api/open/cases.csv")
+    def open_cases_csv(days: int = Query(90, ge=1, le=730), lang: Lang = "kk"):
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["week", "cell_lat", "cell_lon", "disease", "name", "count"])
+        for r in open_rows(days, lang):
+            w.writerow([r["week"], r["cell_lat"], r["cell_lon"], r["disease"], r["name"], r["count"]])
+        return Response("\ufeff" + buf.getvalue(), media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": 'attachment; filename="eginai-open-cases.csv"'})
 
     app.include_router(bot_api.make_router(state))
 

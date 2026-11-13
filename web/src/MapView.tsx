@@ -62,6 +62,10 @@ export default function MapView({ lang, t }: { lang: Lang; t: Texts }) {
           ))}
         </MapContainer>
       </div>
+      <p className="fine open-data">
+        {t.openData} <a href={`/api/open/cases.csv?days=${days}&lang=${lang}`} download>CSV</a>
+        {' · '}<a href={`/api/open/cases?days=${days}&lang=${lang}`} target="_blank" rel="noreferrer">JSON</a>
+      </p>
     </section>
   )
 }
