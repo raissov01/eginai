@@ -103,5 +103,6 @@ export async function shrink(file: File, max = 1600): Promise<Blob> {
 export const DISEASE_COLOR: Record<string, string> = {
   leaf_rust: '#B5471B', stripe_rust: '#D99A00', powdery_mildew: '#6E7B8B',
   fusarium_head_blight: '#C2417A', glume_blotch: '#7A4E2D',
+  septoria_leaf: '#5B4A8A', root_rot: '#3E3A35',
   healthy_leaf: '#2F6B3A', healthy_ear: '#5E8C3A',
 }

@@ -71,7 +71,8 @@ def advise(class_id: str, lang: Lang) -> dict:
     }
 
 
-WHERE = {"leaf": {"kk": "Жапырақта", "ru": "На листьях"}, "ear": {"kk": "Масақта", "ru": "На колосе"}}
+WHERE = {"leaf": {"kk": "Жапырақта", "ru": "На листьях"}, "ear": {"kk": "Масақта", "ru": "На колосе"},
+         "stem": {"kk": "Сабақ түбінде", "ru": "У основания стебля"}}
 
 
 def symptom_key(lang: Lang) -> list[dict]:
@@ -81,7 +82,8 @@ def symptom_key(lang: Lang) -> list[dict]:
         opts = [{"id": cid, "name": d["name"][lang], "look": d["key"]["look"][lang]}
                 for cid, d in kb()["diseases"].items() if w in d["key"]["where"]]
         opts.sort(key=lambda o: o["id"].startswith("healthy"))
-        out.append({"id": w, "name": title[lang], "options": opts})
+        if opts:
+            out.append({"id": w, "name": title[lang], "options": opts})
     return out
 
 

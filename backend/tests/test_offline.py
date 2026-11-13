@@ -6,7 +6,7 @@ def test_offline_bundle(client, predictor):
     assert j["labels"] == predictor.labels
     assert len(j["classifier_w"]) == len(predictor.labels) and len(j["classifier_w"][0]) == 1280
     assert set(j["advice"]) == {"kk", "ru"} and j["advice"]["ru"]["leaf_rust"]["threshold_pct"] == [1, 5]
-    assert len(j["key"]["kk"]) == 2 and j["names"]["kk"]["leaf_rust"] == "Қоңыр тат"
+    assert len(j["key"]["kk"]) >= 2 and j["names"]["kk"]["leaf_rust"] == "Қоңыр тат"
     assert j["thresholds"] == {"min_conf": 0.5, "min_plant": 0.08, "min_texture": 6.0}
     assert j["version"]
 
